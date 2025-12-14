@@ -12,37 +12,29 @@ START_URLS = [
 ]
 OUTPUT_FILE = "GrTube.m3u"
 
-# --- POPUP KILLER ---
+# --- HELPER: Κλείσιμο Διαφημίσεων ---
 def close_popups_and_return(sb, main_window):
-    """Κλείνει τυχόν καρτέλες διαφημίσεων και επιστρέφει στην αρχική"""
     try:
-        # Αν υπάρχουν περισσότερα από 1 παράθυρα
         if len(sb.driver.window_handles) > 1:
-            # print("    🔨 Killing Popup/Ad...")
-            # Κλείσε όλα τα παράθυρα εκτός από το πρώτο (main)
             for handle in sb.driver.window_handles:
                 if handle != main_window:
                     sb.driver.switch_to.window(handle)
                     sb.driver.close()
-            # Γύρνα πίσω στο βασικό
             sb.driver.switch_to.window(main_window)
-            return True # Επέστρεψε True ότι βρήκε και έκλεισε διαφήμιση
-    except Exception as e:
-        print(f"    Popup kill error: {e}")
-        # Για ασφάλεια, γύρνα στο main
+            return True
+    except:
         try: sb.driver.switch_to.window(main_window)
         except: pass
     return False
 
+# --- HELPER: Εύρεση Player στον κώδικα ---
 def find_bootstrap_player(page_source):
     try:
         clean_source = page_source.replace(r'\/', '/')
-        # Ψάχνουμε γνωστούς players
         player_regex = r'["\']src["\']\s*:\s*["\'](https?://[^"\']*(?:upns\.pro|eyetherapi|greenhaven)[^"\']*)["\']'
         match = re.search(player_regex, clean_source)
         if match: return match.group(1)
-            
-        # Generic Embed
+        
         generic_embed = r'"video"\s*:\s*\{[^}]*?"src"\s*:\s*"([^"]+)"'
         match_generic = re.search(generic_embed, clean_source, re.DOTALL)
         if match_generic:
@@ -76,31 +68,24 @@ def get_stream_and_sub(sb, watch_url):
     
     try:
         sb.uc_open_with_reconnect(watch_url, reconnect_time=3)
-        main_window_handle = sb.driver.current_window_handle # Αποθηκεύουμε το ID του παραθύρου μας
+        main_window_handle = sb.driver.current_window_handle 
         
-        # 1. Έλεγχος Bootstrap (JS)
+        # 1. Bootstrap Check
         source = sb.get_page_source()
         player_link = find_bootstrap_player(source)
         
         if player_link:
             final_referer = player_link
             sb.uc_open_with_reconnect(player_link, reconnect_time=3)
-            # Ενημερώνουμε το main handle γιατί αλλάξαμε σελίδα (αν και στο ίδιο tab)
             main_window_handle = sb.driver.current_window_handle 
             
-            # --- POPUP BATTLE ---
+            # Popup Battle & Clicks
             sb.sleep(1)
-            
-            # Λίστα με πιθανά σημεία κλικ
-            click_targets = ["video", "#player", ".jw-display-icon", "body"]
-            
+            click_targets = ["video", "#player", ".jw-display-icon", "body", "div[id*='player']"]
             for target in click_targets:
                 try:
                     sb.click(target, timeout=0.5)
-                    # Ελέγχουμε αμέσως αν άνοιξε διαφήμιση
                     if close_popups_and_return(sb, main_window_handle):
-                        # Αν άνοιξε διαφήμιση, το κλικ πήγε χαμένο. Πρέπει να ΞΑΝΑΚΑΝΟΥΜΕ κλικ.
-                        # print("    Refocusing and clicking again...")
                         sb.sleep(0.5)
                         sb.click(target, timeout=0.5)
                 except: pass
@@ -110,7 +95,7 @@ def get_stream_and_sub(sb, watch_url):
             v, s = extract_final_link(player_source)
             if v: return v, s, final_referer
 
-        # 2. Fallback Iframe
+        # 2. Iframe Fallback
         sb.sleep(1)
         iframes = sb.find_elements("iframe")
         if iframes:
@@ -123,17 +108,13 @@ def get_stream_and_sub(sb, watch_url):
                     if not frame_src or "google" in frame_src: continue
                     
                     sb.switch_to_frame(frame)
-                    
-                    # Κλικ και εδώ (μέσα στο iframe)
-                    try: 
-                        sb.click("video", timeout=1)
-                        # Δεν μπορούμε εύκολα να ελέγξουμε παράθυρα όσο είμαστε σε iframe context
-                        # Ελπίζουμε ότι το SeleniumBase θα μείνει στο frame
+                    try: sb.click("video", timeout=1) 
                     except: pass
-                    
                     sb.sleep(3)
+                    
                     frame_source = sb.get_page_source()
                     v, s = extract_final_link(frame_source)
+                    
                     if v:
                         if frame_src.startswith("http"): final_referer = frame_src
                         sb.switch_to_default_content()
@@ -141,13 +122,12 @@ def get_stream_and_sub(sb, watch_url):
                     sb.switch_to_default_content()
                 except: sb.switch_to_default_content()
 
-        # 3. Last Check
+        # 3. Source Fallback
         v, s = extract_final_link(source)
         if v: return v, s, final_referer
                 
     except Exception as e: 
         print(f"Error getting stream {watch_url}: {e}")
-        # Emergency cleanup if crashed
         try:
              if len(sb.driver.window_handles) > 1:
                  sb.driver.switch_to.window(sb.driver.window_handles[0])
@@ -193,64 +173,94 @@ def smart_save_m3u(new_streams):
 
 def main():
     all_streams = []
-    # Προσθέσαμε το block_images=True για ταχύτητα
-    with SB(uc=True, test=True, headless=False, xvfb=True, block_images=True) as sb:
+    # Ενεργοποιούμε το block_images=False μήπως το Cloudflare το ανιχνεύει
+    with SB(uc=True, test=True, headless=False, xvfb=True) as sb:
+        
         for list_url in START_URLS:
             print(f"Loading List: {list_url}")
-            try:
-                sb.uc_open_with_reconnect(list_url, reconnect_time=4)
-                try: sb.uc_gui_click_captcha()
-                except: pass
-                sb.sleep(2)
-                sb.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-                sb.sleep(2)
-                
-                source = sb.get_page_source()
-                soup = BeautifulSoup(source, 'html.parser')
-                
-                movie_links = []
-                for a in soup.find_all('a', href=True):
-                    href = a['href']
-                    if '/titles/' in href and 'page=' not in href:
-                        full_link = href if href.startswith('http') else BASE_URL + href
-                        if full_link not in movie_links: movie_links.append(full_link)
-                print(f"Found {len(movie_links)} movies on page.")
-                
-                for i, m_url in enumerate(movie_links):
-                    print(f"Processing ({i+1}/{len(movie_links)}): {m_url}")
+            
+            # --- LOOP ΠΡΟΣΠΑΘΕΙΑΣ ΦΟΡΤΩΣΗΣ ΛΙΣΤΑΣ ---
+            retry_count = 0
+            movies_found = False
+            
+            while retry_count < 2 and not movies_found:
+                try:
+                    sb.uc_open_with_reconnect(list_url, reconnect_time=5)
+                    try: sb.uc_gui_click_captcha()
+                    except: pass
+                    
+                    # Debug: Τι βλέπει ο browser?
+                    print(f"  Page Title: {sb.get_title()}")
+                    
+                    # ΠΕΡΙΜΕΝΟΥΜΕ ΝΑ ΕΜΦΑΝΙΣΤΟΥΝ ΤΑΙΝΙΕΣ (Κρίσιμο σημείο!)
+                    # Ψάχνουμε links που έχουν το /titles/
                     try:
-                        sb.uc_open_with_reconnect(m_url, reconnect_time=2)
-                        msource = sb.get_page_source()
-                        msoup = BeautifulSoup(msource, 'html.parser')
-                        title_tag = msoup.find('h1')
-                        title = title_tag.text.strip() if title_tag else "Unknown"
+                        sb.wait_for_element_present("a[href*='/titles/']", timeout=10)
+                    except:
+                        print("  ⚠️ Timeout waiting for movies. Cloudflare blocking?")
+                    
+                    source = sb.get_page_source()
+                    soup = BeautifulSoup(source, 'html.parser')
+                    
+                    movie_links = []
+                    for a in soup.find_all('a', href=True):
+                        href = a['href']
+                        if '/titles/' in href and 'page=' not in href:
+                            full_link = href if href.startswith('http') else BASE_URL + href
+                            if full_link not in movie_links: movie_links.append(full_link)
+                    
+                    if len(movie_links) > 0:
+                        print(f"  ✅ Found {len(movie_links)} movies.")
+                        movies_found = True
+                    else:
+                        print("  ❌ 0 movies found. Refreshing...")
+                        sb.refresh()
+                        sb.sleep(5)
+                        retry_count += 1
                         
-                        watch_url = None
-                        label = "Stream"
-                        for a in msoup.find_all('a', href=True):
-                            if '/watch/' in a['href']:
-                                temp_label = a.text.strip()
-                                if "Trailer" in temp_label or "trailer" in temp_label.lower(): continue
-                                if temp_label: label = temp_label
-                                else: label = "Stream"
-                                watch_url = a['href'] if a['href'].startswith('http') else BASE_URL + a['href']
-                                break 
-                        
-                        if watch_url:
-                            stream_link, sub_link, dynamic_referer = get_stream_and_sub(sb, watch_url)
-                            if stream_link:
-                                print(f"  + Found: {stream_link}")
-                                stream_link = stream_link.split('"')[0].split("'")[0]
-                                all_streams.append({
-                                    'title': f"{title} [{label}]",
-                                    'url': stream_link,
-                                    'subtitle': sub_link,
-                                    'referer': dynamic_referer
-                                })
-                            else: print(f"  - No link found in {watch_url}")
-                        else: print("  - No watch button found")
-                    except Exception as e: print(f"Error processing movie {m_url}: {e}")
-            except Exception as e: print(f"Error on list {list_url}: {e}")
+                except Exception as e:
+                    print(f"  Error loading list: {e}")
+                    retry_count += 1
+
+            if not movies_found:
+                print("  💀 Failed to load list after retries. Skipping page.")
+                continue
+
+            # --- ΕΠΕΞΕΡΓΑΣΙΑ ΤΑΙΝΙΩΝ ---
+            for i, m_url in enumerate(movie_links):
+                print(f"Processing ({i+1}/{len(movie_links)}): {m_url}")
+                try:
+                    sb.uc_open_with_reconnect(m_url, reconnect_time=2)
+                    msource = sb.get_page_source()
+                    msoup = BeautifulSoup(msource, 'html.parser')
+                    title_tag = msoup.find('h1')
+                    title = title_tag.text.strip() if title_tag else "Unknown"
+                    
+                    watch_url = None
+                    label = "Stream"
+                    for a in msoup.find_all('a', href=True):
+                        if '/watch/' in a['href']:
+                            temp_label = a.text.strip()
+                            if "Trailer" in temp_label or "trailer" in temp_label.lower(): continue
+                            if temp_label: label = temp_label
+                            else: label = "Stream"
+                            watch_url = a['href'] if a['href'].startswith('http') else BASE_URL + a['href']
+                            break 
+                    
+                    if watch_url:
+                        stream_link, sub_link, dynamic_referer = get_stream_and_sub(sb, watch_url)
+                        if stream_link:
+                            print(f"  + Found: {stream_link}")
+                            stream_link = stream_link.split('"')[0].split("'")[0]
+                            all_streams.append({
+                                'title': f"{title} [{label}]",
+                                'url': stream_link,
+                                'subtitle': sub_link,
+                                'referer': dynamic_referer
+                            })
+                        else: print(f"  - No link found in {watch_url}")
+                    else: print("  - No watch button found")
+                except Exception as e: print(f"Error processing movie {m_url}: {e}")
 
     if all_streams: smart_save_m3u(all_streams)
     else: print("❌ No streams found.")
