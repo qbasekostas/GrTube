@@ -12,55 +12,58 @@ START_URLS = [
 ]
 OUTPUT_FILE = "GrTube.m3u"
 
-# --- ΒΕΛΤΙΩΜΕΝΟ PARSING (REGEX MODE) ---
-def find_hidden_player_url(page_source):
+def find_bootstrap_player(page_source):
     """
-    Ψάχνει για το src του βίντεο απευθείας στον κώδικα (bootstrapData) με Regex.
-    Αγνοεί αν το JSON είναι έγκυρο ή όχι.
+    Ψάχνει συγκεκριμένα για τον embed player μέσα στο window.bootstrapData
     """
     try:
-        # 1. Ψάχνουμε το pattern: "src": "https://...upns.pro..."
-        # Το '?' στο τέλος το κάνει non-greedy (σταματάει στο πρώτο ")
-        # Δοκιμάζουμε με διπλά εισαγωγικά "
-        match = re.search(r'"src"\s*:\s*"([^"]+)"', page_source)
-        if not match:
-            # Δοκιμάζουμε με μονά εισαγωγικά '
-            match = re.search(r"'src'\s*:\s*'([^']+)'", page_source)
+        # 1. Καθαρισμός των slashes για να είναι καθαρό το κείμενο
+        clean_source = page_source.replace(r'\/', '/')
         
+        # 2. Στοχευμένη αναζήτηση για γνωστούς players (upns.pro κλπ)
+        # Ψάχνουμε κάτι σαν: "src":"https://greektube.upns.pro/#..."
+        player_regex = r'["\']src["\']\s*:\s*["\'](https?://[^"\']*(?:upns\.pro|eyetherapi|greenhaven)[^"\']*)["\']'
+        
+        match = re.search(player_regex, clean_source)
         if match:
-            url = match.group(1)
-            # Καθαρίζουμε τα escaped slashes (https:\/\/ -> https://)
-            url = url.replace(r'\/', '/')
+            return match.group(1)
             
-            # Έλεγχος: Είναι όντως βίντεο player;
-            if any(x in url for x in ['upns.pro', 'embed', 'player', 'youtube', 'vimeo']):
-                return url
-                
+        # 3. Αν δεν βρεθεί με το όνομα, ψάχνουμε για οποιοδήποτε embed src μέσα στο video object
+        # Αυτό είναι πιο επικίνδυνο αλλά πιάνει τα πάντα
+        generic_embed = r'"video"\s*:\s*\{.*?"src"\s*:\s*"([^"]+)"'
+        match_generic = re.search(generic_embed, clean_source, re.DOTALL)
+        if match_generic:
+            url = match_generic.group(1)
+            if url.startswith("http"): return url
+
     except Exception as e:
-        print(f"Error parsing hidden url: {e}")
+        print(f"Error finding bootstrap player: {e}")
     return None
 
-def extract_links_from_source(source):
+def extract_final_link(source):
+    """Ψάχνει για το τελικό αρχείο βίντεο/υπότιτλου"""
     video_url = None
     sub_url = None
     clean_source = source.replace(r'\/', '/')
     
-    # Regex για βίντεο (.mp4, .m3u8, .txt) - Βελτιωμένο
-    # Πιάνει και links που έχουν παραμέτρους (π.χ. .txt?token=...)
-    vid_regex = r'(https?://[^"\'<>]+\.(?:mp4|m3u8|txt)(?:[^"\'<>\s]*)?)'
+    # Regex για Master Files (.txt, .m3u8, .mp4)
+    # Πιάνει και links με tokens (?token=...)
+    vid_regex = r'(https?://[^"\'<>\s]+\.(?:mp4|m3u8|txt)(?:[^"\'<>\s]*)?)'
     
-    # Regex για υπότιτλους
-    sub_regex = r'(https?://[^"\'<>]+\.(?:vtt|srt)(?:[^"\'<>\s]*)?)'
+    # Regex για Υπότιτλους
+    sub_regex = r'(https?://[^"\'<>\s]+\.(?:vtt|srt)(?:[^"\'<>\s]*)?)'
     
+    # Ψάχνουμε όλα τα links
     vid_matches = re.findall(vid_regex, clean_source)
     for match in vid_matches:
-        # Φίλτρο για σκουπίδια
-        if not any(bad in match for bad in ["google", "facebook", "w3.org", "schema.org", "image.tmdb", "cloudflare"]):
+        # Αυστηρό φίλτρο για να μην παίρνουμε σκουπίδια
+        if not any(bad in match for bad in ["google", "facebook", "w3.org", "schema", "image.tmdb", "cloudflare", "jquery"]):
             video_url = match
-            break
+            break # Παίρνουμε το πρώτο καλό
             
     sub_match = re.search(sub_regex, clean_source)
     if sub_match: sub_url = sub_match.group(1)
+    
     return video_url, sub_url
 
 def get_stream_and_sub(sb, watch_url):
@@ -71,45 +74,42 @@ def get_stream_and_sub(sb, watch_url):
     try:
         # Άνοιγμα σελίδας
         sb.uc_open_with_reconnect(watch_url, reconnect_time=3)
-        sb.sleep(2) 
         
-        # --- ΜΕΘΟΔΟΣ 1: Εύρεση Κρυμμένου Player (Bootstrap) ---
-        full_source = sb.get_page_source()
-        hidden_player = find_hidden_player_url(full_source)
+        # --- ΒΗΜΑ 1: Έλεγχος για Bootstrap Player (JS) ---
+        # Παίρνουμε το source ΑΜΕΣΩΣ για να προλάβουμε το JS
+        source = sb.get_page_source()
+        player_link = find_bootstrap_player(source)
         
-        if hidden_player and hidden_player.startswith('http'):
-            # print(f"    -> Redirecting to hidden player: {hidden_player}")
-            final_referer = hidden_player
+        if player_link:
+            # print(f"    -> Found external player: {player_link}")
+            final_referer = player_link
             
-            # Πάμε στον player (π.χ. upns.pro)
-            sb.uc_open_with_reconnect(hidden_player, reconnect_time=3)
+            # Πλοήγηση στον player
+            sb.uc_open_with_reconnect(player_link, reconnect_time=3)
             
-            # --- ΠΟΛΛΑΠΛΑ ΚΛΙΚ ΓΙΑ ΝΑ ΞΥΠΝΗΣΕΙ Ο PLAYER ---
-            # Κάνουμε κλικ στο κέντρο και σε πιθανά κουμπιά
+            # --- ΒΗΜΑ 2: Interaction με τον Player ---
+            # Κάνουμε κλικ για να "ξυπνήσει" και να κατεβάσει το .txt
             sb.sleep(1)
-            try: sb.click("body", timeout=1) # Γενικό κλικ για focus
-            except: pass
             
-            # Ψάχνουμε διάφορα play buttons
-            selectors = ["video", ".jw-display-icon", "#player", ".play-button", "button[aria-label='Play']"]
-            for sel in selectors:
+            # Προσπάθεια κλικ σε οτιδήποτε μοιάζει με play button ή overlay
+            # Το upns.pro συχνά θέλει κλικ στο body ή σε div
+            actions = ["video", ".jw-display-icon", "#player", ".play-button", "div[id*='player']", "body"]
+            for selector in actions:
                 try: 
-                    sb.click(sel, timeout=0.5)
-                    # print(f"       Clicked {sel}")
+                    sb.click(selector, timeout=0.5)
                 except: pass
             
-            sb.sleep(4) # Αναμονή για φόρτωση master file
+            # Περιμένουμε λίγο να φορτώσει το δίκτυο
+            sb.sleep(4)
             
+            # Ψάχνουμε στο source του player
             player_source = sb.get_page_source()
-            video_url, sub_url = extract_links_from_source(player_source)
-            
-            if video_url: return video_url, sub_url, final_referer
+            v, s = extract_final_link(player_source)
+            if v: return v, s, final_referer
 
-        # --- ΜΕΘΟΔΟΣ 2: Κανονικό Scan (Αν δεν πέτυχε το redirect) ---
-        v, s = extract_links_from_source(full_source)
-        if v: return v, s, final_referer
-
-        # --- ΜΕΘΟΔΟΣ 3: Iframe Deep Search ---
+        # --- ΒΗΜΑ 3: Fallback (Iframe Search) ---
+        # Αν δεν βρήκαμε bootstrap link, ψάχνουμε για iframes
+        sb.sleep(2) # Περιμένουμε να φορτώσει η αρχική σελίδα πλήρως
         iframes = sb.find_elements("iframe")
         if iframes:
             for i in range(len(iframes)):
@@ -119,28 +119,34 @@ def get_stream_and_sub(sb, watch_url):
                     frame = current_iframes[i]
                     frame_src = frame.get_attribute("src")
                     
-                    if not frame_src or any(x in frame_src for x in ["google", "facebook", "twitter", "ads"]): continue
+                    if not frame_src or "google" in frame_src: continue
                     
                     sb.switch_to_frame(frame)
+                    # Κλικ και εδώ
                     try: sb.click("video", timeout=1) 
                     except: pass
-                    sb.sleep(3) 
+                    sb.sleep(3)
                     
                     frame_source = sb.get_page_source()
-                    v_frame, s_frame = extract_links_from_source(frame_source)
-                    if v_frame:
-                        video_url = v_frame
-                        sub_url = s_frame
+                    v, s = extract_final_link(frame_source)
+                    
+                    if v:
                         if frame_src.startswith("http"): final_referer = frame_src
                         sb.switch_to_default_content()
-                        break
+                        return v, s, final_referer
+                        
                     sb.switch_to_default_content()
                 except: sb.switch_to_default_content()
+
+        # --- ΒΗΜΑ 4: Τελευταία ελπίδα (Source αρχικής σελίδας) ---
+        # Μήπως το βίντεο ήταν χύμα στη σελίδα;
+        v, s = extract_final_link(source)
+        if v: return v, s, final_referer
                 
     except Exception as e: 
         print(f"Error getting stream {watch_url}: {e}")
         
-    return video_url, sub_url, final_referer
+    return None, None, final_referer
 
 def smart_save_m3u(new_streams):
     old_entries = []
@@ -226,7 +232,6 @@ def main():
                             stream_link, sub_link, dynamic_referer = get_stream_and_sub(sb, watch_url)
                             if stream_link:
                                 print(f"  + Found: {stream_link}")
-                                # Clean garbage from URL end
                                 stream_link = stream_link.split('"')[0].split("'")[0]
                                 all_streams.append({
                                     'title': f"{title} [{label}]",
