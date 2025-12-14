@@ -12,37 +12,32 @@ START_URLS = [
 ]
 OUTPUT_FILE = "GrTube.m3u"
 
-# --- JSON PARSER (Η ΑΛΛΑΓΗ) ---
-def extract_bootstrap_data(soup):
+# --- ΒΕΛΤΙΩΜΕΝΟ PARSING (REGEX MODE) ---
+def find_hidden_player_url(page_source):
     """
-    Διαβάζει το window.bootstrapData ως καθαρό JSON αντικείμενο.
+    Ψάχνει για το src του βίντεο απευθείας στον κώδικα (bootstrapData) με Regex.
+    Αγνοεί αν το JSON είναι έγκυρο ή όχι.
     """
     try:
-        scripts = soup.find_all('script')
-        for script in scripts:
-            if script.string and 'window.bootstrapData' in script.string:
-                # Καθαρίζουμε το string για να μείνει μόνο το JSON
-                # Αφαιρούμε το "window.bootstrapData = " και το ";" στο τέλος
-                json_text = script.string.strip()
-                if json_text.startswith('window.bootstrapData ='):
-                    json_text = json_text.replace('window.bootstrapData =', '', 1)
-                if json_text.endswith(';'):
-                    json_text = json_text[:-1]
-                
-                # Μετατροπή σε Python Dictionary
-                data = json.loads(json_text)
-                
-                # Πλοήγηση βάσει του HTML που έστειλες:
-                # loaders -> watchPage -> video -> src
-                if 'loaders' in data and 'watchPage' in data['loaders']:
-                    watch_page = data['loaders']['watchPage']
-                    if 'video' in watch_page and watch_page['video']:
-                        src = watch_page['video'].get('src')
-                        if src:
-                            return src
-    except Exception as e:
-        print(f"JSON Parsing Error: {e}")
+        # 1. Ψάχνουμε το pattern: "src": "https://...upns.pro..."
+        # Το '?' στο τέλος το κάνει non-greedy (σταματάει στο πρώτο ")
+        # Δοκιμάζουμε με διπλά εισαγωγικά "
+        match = re.search(r'"src"\s*:\s*"([^"]+)"', page_source)
+        if not match:
+            # Δοκιμάζουμε με μονά εισαγωγικά '
+            match = re.search(r"'src'\s*:\s*'([^']+)'", page_source)
         
+        if match:
+            url = match.group(1)
+            # Καθαρίζουμε τα escaped slashes (https:\/\/ -> https://)
+            url = url.replace(r'\/', '/')
+            
+            # Έλεγχος: Είναι όντως βίντεο player;
+            if any(x in url for x in ['upns.pro', 'embed', 'player', 'youtube', 'vimeo']):
+                return url
+                
+    except Exception as e:
+        print(f"Error parsing hidden url: {e}")
     return None
 
 def extract_links_from_source(source):
@@ -50,15 +45,17 @@ def extract_links_from_source(source):
     sub_url = None
     clean_source = source.replace(r'\/', '/')
     
-    # Regex για βίντεο (.mp4, .m3u8, .txt)
-    vid_regex = r'(https?://[^"\'<>]+\.(?:mp4|m3u8|txt)(?:[^"\'<>]*)?)'
-    # Regex για υπότιτλους (.vtt, .srt)
-    sub_regex = r'(https?://[^"\'<>]+\.(?:vtt|srt)(?:[^"\'<>]*)?)'
+    # Regex για βίντεο (.mp4, .m3u8, .txt) - Βελτιωμένο
+    # Πιάνει και links που έχουν παραμέτρους (π.χ. .txt?token=...)
+    vid_regex = r'(https?://[^"\'<>]+\.(?:mp4|m3u8|txt)(?:[^"\'<>\s]*)?)'
     
-    # Φίλτρο για να μην πιάνουμε σκουπίδια
+    # Regex για υπότιτλους
+    sub_regex = r'(https?://[^"\'<>]+\.(?:vtt|srt)(?:[^"\'<>\s]*)?)'
+    
     vid_matches = re.findall(vid_regex, clean_source)
     for match in vid_matches:
-        if not any(bad in match for bad in ["google", "facebook", "w3.org", "schema.org", "image.tmdb"]):
+        # Φίλτρο για σκουπίδια
+        if not any(bad in match for bad in ["google", "facebook", "w3.org", "schema.org", "image.tmdb", "cloudflare"]):
             video_url = match
             break
             
@@ -72,42 +69,47 @@ def get_stream_and_sub(sb, watch_url):
     final_referer = watch_url 
     
     try:
+        # Άνοιγμα σελίδας
         sb.uc_open_with_reconnect(watch_url, reconnect_time=3)
         sb.sleep(2) 
         
-        source = sb.get_page_source()
-        soup = BeautifulSoup(source, 'html.parser')
-
-        # --- ΜΕΘΟΔΟΣ 1: JSON Bootstrap (Η πιο σίγουρη) ---
-        bootstrap_link = extract_bootstrap_data(soup)
+        # --- ΜΕΘΟΔΟΣ 1: Εύρεση Κρυμμένου Player (Bootstrap) ---
+        full_source = sb.get_page_source()
+        hidden_player = find_hidden_player_url(full_source)
         
-        if bootstrap_link and bootstrap_link.startswith('http'):
-            # print(f"    -> Bootstrap Link Found: {bootstrap_link}")
-            final_referer = bootstrap_link 
+        if hidden_player and hidden_player.startswith('http'):
+            # print(f"    -> Redirecting to hidden player: {hidden_player}")
+            final_referer = hidden_player
             
-            # Πάμε στο link του player (π.χ. upns.pro)
-            sb.uc_open_with_reconnect(bootstrap_link, reconnect_time=3)
+            # Πάμε στον player (π.χ. upns.pro)
+            sb.uc_open_with_reconnect(hidden_player, reconnect_time=3)
             
-            # Κλικ Play
-            try: sb.click("video", timeout=1)
-            except: pass
-            try: sb.click(".jw-display-icon", timeout=1) # JWPlayer
-            except: pass
-            try: sb.click("#player", timeout=1)
+            # --- ΠΟΛΛΑΠΛΑ ΚΛΙΚ ΓΙΑ ΝΑ ΞΥΠΝΗΣΕΙ Ο PLAYER ---
+            # Κάνουμε κλικ στο κέντρο και σε πιθανά κουμπιά
+            sb.sleep(1)
+            try: sb.click("body", timeout=1) # Γενικό κλικ για focus
             except: pass
             
-            sb.sleep(4) 
+            # Ψάχνουμε διάφορα play buttons
+            selectors = ["video", ".jw-display-icon", "#player", ".play-button", "button[aria-label='Play']"]
+            for sel in selectors:
+                try: 
+                    sb.click(sel, timeout=0.5)
+                    # print(f"       Clicked {sel}")
+                except: pass
+            
+            sb.sleep(4) # Αναμονή για φόρτωση master file
             
             player_source = sb.get_page_source()
             video_url, sub_url = extract_links_from_source(player_source)
             
             if video_url: return video_url, sub_url, final_referer
 
-        # --- ΜΕΘΟΔΟΣ 2: Κανονικό Scan ---
-        v, s = extract_links_from_source(source)
+        # --- ΜΕΘΟΔΟΣ 2: Κανονικό Scan (Αν δεν πέτυχε το redirect) ---
+        v, s = extract_links_from_source(full_source)
         if v: return v, s, final_referer
 
-        # --- ΜΕΘΟΔΟΣ 3: Iframe Scan ---
+        # --- ΜΕΘΟΔΟΣ 3: Iframe Deep Search ---
         iframes = sb.find_elements("iframe")
         if iframes:
             for i in range(len(iframes)):
@@ -165,7 +167,6 @@ def smart_save_m3u(new_streams):
 
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
         f.write("#EXTM3U\n")
-        # Πρώτα τα καινούργια
         for s in new_streams:
             clean_title = s['title'].replace(",", " -").replace("\n", " ")
             f.write(f"#EXTINF:-1 group-title=\"Movies\",{clean_title}\n")
@@ -173,7 +174,6 @@ def smart_save_m3u(new_streams):
             f.write(f"#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36\n")
             if s['subtitle']: f.write(f"#EXTVLCOPT:sub-file={s['subtitle']}\n")
             f.write(f"{s['url']}\n")
-        # Μετά τα παλιά
         for entry in unique_old_entries:
             for line in entry['raw_lines']: f.write(f"{line}\n")
     print(f"✅ Playlist updated! Total: {len(new_streams) + len(unique_old_entries)} movies.")
@@ -213,8 +213,6 @@ def main():
                         
                         watch_url = None
                         label = "Stream"
-                        
-                        # Εύρεση κατάλληλου κουμπιού watch
                         for a in msoup.find_all('a', href=True):
                             if '/watch/' in a['href']:
                                 temp_label = a.text.strip()
@@ -228,7 +226,7 @@ def main():
                             stream_link, sub_link, dynamic_referer = get_stream_and_sub(sb, watch_url)
                             if stream_link:
                                 print(f"  + Found: {stream_link}")
-                                # Καθαρισμός πιθανών χαρακτήρων μετά το extension
+                                # Clean garbage from URL end
                                 stream_link = stream_link.split('"')[0].split("'")[0]
                                 all_streams.append({
                                     'title': f"{title} [{label}]",
