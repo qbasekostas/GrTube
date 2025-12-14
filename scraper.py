@@ -9,101 +9,129 @@ START_URLS = [
     "https://greektube.pro/movies?order=created_at%3Adesc",
     "https://greektube.pro/movies?order=created_at%3Adesc&page=2"
 ]
-OUTPUT_FILE = "GrTube.m3u"
+OUTPUT_FILE = "playlist.m3u"
+
+def extract_links_from_source(source):
+    """Βοηθητική συνάρτηση που καθαρίζει τον κώδικα και ψάχνει λινκ"""
+    video_url = None
+    sub_url = None
+    
+    # 1. Αφαίρεση escaped slashes (π.χ. https:\/\/ -> https://)
+    clean_source = source.replace(r'\/', '/')
+    
+    # 2. Regex που πιάνει .mp4, .m3u8, .txt ακόμα και αν έχουν παραμέτρους πίσω
+    # Ψάχνει να ξεκινάει με http και να περιέχει την κατάληξη, μέχρι να βρει " ή ' ή < ή >
+    vid_regex = r'(https?://[^"\'<>]+\.(?:mp4|m3u8|txt)(?:[^"\'<>]*)?)'
+    
+    # Regex για υπότιτλους
+    sub_regex = r'(https?://[^"\'<>]+\.(?:vtt|srt)(?:[^"\'<>]*)?)'
+    
+    vid_matches = re.findall(vid_regex, clean_source)
+    # Φιλτράρισμα: Αν βρει πολλά, προτιμάμε αυτά που δεν είναι .js ή .css (αν και το regex έχει extensions)
+    for match in vid_matches:
+        # Μερικές φορές πιάνει σκουπίδια, κάνουμε check
+        if "google" not in match and "facebook" not in match:
+            video_url = match
+            break # Παίρνουμε το πρώτο καλό
+            
+    sub_match = re.search(sub_regex, clean_source)
+    if sub_match:
+        sub_url = sub_match.group(1)
+        
+    return video_url, sub_url
 
 def get_stream_and_sub(sb, watch_url):
     video_url = None
     sub_url = None
-    final_referer = watch_url # Default referer: η σελίδα της ταινίας
+    final_referer = watch_url 
     
     try:
-        # Ανοίγουμε τη σελίδα του player
+        # Άνοιγμα σελίδας
         sb.uc_open_with_reconnect(watch_url, reconnect_time=3)
-        sb.sleep(2) # Λίγο παραπάνω χρόνο για να φορτώσουν τα iframes
+        sb.sleep(2) 
         
-        # Regex για βίντεο και υπότιτλους
-        vid_regex = r'(https?://[^\s"\'<>]+\.(?:mp4|m3u8|txt))'
-        sub_regex = r'(https?://[^\s"\'<>]+\.(?:vtt|srt))'
-        
-        # --- ΒΗΜΑ 1: Έλεγχος στην κύρια σελίδα ---
+        # --- ΒΗΜΑ 1: Έλεγχος στην Κύρια Σελίδα ---
         source = sb.get_page_source()
-        vid_match = re.search(vid_regex, source)
-        
-        if vid_match:
-            video_url = vid_match.group(1)
-            # Ψάχνουμε και για υπότιτλο στην κύρια σελίδα
-            sub_match = re.search(sub_regex, source)
-            if sub_match: sub_url = sub_match.group(1)
+        v, s = extract_links_from_source(source)
+        if v:
+            return v, s, final_referer
+
+        # --- ΒΗΜΑ 2: Deep Search στα IFRAMES ---
+        iframes = sb.find_elements("iframe")
+        if iframes:
+            # print(f"    > Found {len(iframes)} iframes. Deep scanning...")
             
-        else:
-            # --- ΒΗΜΑ 2: Έλεγχος μέσα στα IFRAMES (Deep Search) ---
-            # Βρίσκουμε όλα τα iframes
-            iframes = sb.find_elements("iframe")
-            if iframes:
-                # print(f"  > Found {len(iframes)} iframes. Searching inside...")
-                
-                # Δοκιμάζουμε να μπούμε σε κάθε iframe
-                for i in range(len(iframes)):
+            for i in range(len(iframes)):
+                try:
+                    # Refresh elements list
+                    current_iframes = sb.find_elements("iframe")
+                    if i >= len(current_iframes): break
+                    
+                    frame = current_iframes[i]
+                    frame_src = frame.get_attribute("src")
+                    
+                    # Αγνοούμε διαφημίσεις
+                    if not frame_src or any(x in frame_src for x in ["google", "facebook", "twitter", "ads"]):
+                        continue
+                        
+                    # Μπαίνουμε στο iframe
+                    sb.switch_to_frame(frame)
+                    
+                    # --- ΤΡΙΚ: Προσπάθεια Click στο Play ---
+                    # Πολλά players δεν φορτώνουν το src αν δεν πατήσεις κλικ
                     try:
-                        # Πρέπει να ξαναβρούμε το element γιατί το DOM μπορεί να άλλαξε
-                        current_iframes = sb.find_elements("iframe")
-                        if i >= len(current_iframes): break
+                        # Ψάχνουμε κοινά classes για play buttons
+                        sb.click("video", timeout=1) 
+                    except: pass
+                    
+                    try:
+                        sb.click(".jw-display-icon", timeout=1) # JWPlayer
+                    except: pass
+                    
+                    try:
+                        sb.click(".play-button", timeout=1)
+                    except: pass
+                    
+                    # Περιμένουμε να αντιδράσει το JS
+                    sb.sleep(4) 
+                    
+                    # Παίρνουμε τον κώδικα του iframe
+                    frame_source = sb.get_page_source()
+                    
+                    # Ψάχνουμε
+                    v_frame, s_frame = extract_links_from_source(frame_source)
+                    
+                    if v_frame:
+                        video_url = v_frame
+                        sub_url = s_frame
                         
-                        frame = current_iframes[i]
-                        frame_src = frame.get_attribute("src")
+                        # Αν βρέθηκε σε iframe, ο referer είναι το src του iframe
+                        if frame_src.startswith("http"):
+                            final_referer = frame_src
                         
-                        # Αγνοούμε iframes διαφημίσεων/google/facebook για ταχύτητα
-                        if not frame_src or "google" in frame_src or "facebook" in frame_src:
-                            continue
-                            
-                        # Μπαίνουμε στο iframe
-                        sb.switch_to_frame(frame)
-                        frame_source = sb.get_page_source()
-                        
-                        # Ψάχνουμε πάλι μέσα στο iframe
-                        frame_vid_match = re.search(vid_regex, frame_source)
-                        
-                        if frame_vid_match:
-                            video_url = frame_vid_match.group(1)
-                            
-                            # ΣΗΜΑΝΤΙΚΟ: Αλλάζουμε τον Referer στο URL του Iframe!
-                            # Π.χ. αν το iframe είναι greektube.upns.pro, αυτός είναι ο referer
-                            if frame_src and frame_src.startswith("http"):
-                                final_referer = frame_src
-                                # Καθαρίζουμε τον referer να είναι το base url του iframe (προαιρετικά)
-                                # Αλλά συνήθως αρκεί το full url ή το domain. Ας κρατήσουμε το full url του iframe.
-                            
-                            # Ψάχνουμε υπότιτλο μέσα στο iframe
-                            frame_sub_match = re.search(sub_regex, frame_source)
-                            if frame_sub_match: sub_url = frame_sub_match.group(1)
-                            
-                            # Βγαίνουμε πίσω στην κύρια σελίδα και σταματάμε το ψάξιμο
-                            sb.switch_to_default_content()
-                            break
-                        
-                        # Βγαίνουμε πίσω για να πάμε στο επόμενο
                         sb.switch_to_default_content()
-                        
-                    except Exception as frame_err:
-                        # print(f"    Error searching iframe {i}: {frame_err}")
-                        sb.switch_to_default_content()
+                        break
+                    
+                    sb.switch_to_default_content()
+                    
+                except Exception as frame_err:
+                    # print(f"    Frame error: {frame_err}")
+                    sb.switch_to_default_content()
                         
     except Exception as e:
-        print(f"Error getting stream/sub {watch_url}: {e}")
+        print(f"Error getting stream {watch_url}: {e}")
         
     return video_url, sub_url, final_referer
 
 def main():
     all_streams = []
     
-    # Ξεκινάμε το SeleniumBase
     with SB(uc=True, test=True, headless=False, xvfb=True) as sb:
         
         for list_url in START_URLS:
             print(f"Loading List: {list_url}")
             try:
                 sb.uc_open_with_reconnect(list_url, reconnect_time=4)
-                
                 try: sb.uc_gui_click_captcha()
                 except: pass
                 
@@ -141,29 +169,25 @@ def main():
                         for a in msoup.find_all('a', href=True):
                             if '/watch/' in a['href']:
                                 temp_label = a.text.strip()
-                                if "Trailer" in temp_label or "trailer" in temp_label.lower():
-                                    continue
+                                if "Trailer" in temp_label or "trailer" in temp_label.lower(): continue
                                 if temp_label: label = temp_label
                                 else: label = "Stream"
                                 watch_url = a['href'] if a['href'].startswith('http') else BASE_URL + a['href']
                                 break 
                         
                         if watch_url:
-                            # Καλούμε τη νέα συνάρτηση που επιστρέφει ΚΑΙ τον σωστό Referer
                             stream_link, sub_link, dynamic_referer = get_stream_and_sub(sb, watch_url)
                             
                             if stream_link:
-                                print(f"  + Video: {stream_link}")
-                                print(f"    (Ref: {dynamic_referer})") # Debug print για να δούμε τι βρήκε
-                                
-                                if sub_link:
-                                    print(f"  + Subtitle: {sub_link}")
+                                print(f"  + Found: {stream_link}")
+                                # Clean up URL if it has junk at the end (extra quotes etc)
+                                stream_link = stream_link.split('"')[0].split("'")[0]
                                 
                                 all_streams.append({
                                     'title': f"{title} [{label}]",
                                     'url': stream_link,
                                     'subtitle': sub_link,
-                                    'referer': dynamic_referer # <-- Ο σωστός Referer (είτε main είτε iframe)
+                                    'referer': dynamic_referer
                                 })
                             else:
                                 print(f"  - No link found in {watch_url}")
@@ -176,24 +200,16 @@ def main():
             except Exception as e:
                 print(f"Error on list {list_url}: {e}")
 
-    # Αποθήκευση Playlist
     if all_streams:
         with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
             f.write("#EXTM3U\n")
             for s in all_streams:
                 clean_title = s['title'].replace(",", " -").replace("\n", " ")
                 f.write(f"#EXTINF:-1 group-title=\"Movies\",{clean_title}\n")
-                
-                # Dynamic Referer
-                f.write(f"#EXTVLCOPT:http-referrer={s['referer']}\n")
-                
-                # User Agent
+                f.write(f"#EXTVLCOPT:http-referrer={s['referer']}/\n")
                 f.write(f"#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36\n")
-                
-                # Subtitle
                 if s['subtitle']:
                     f.write(f"#EXTVLCOPT:sub-file={s['subtitle']}\n")
-                
                 f.write(f"{s['url']}\n")
         print(f"✅ Playlist saved! Total videos: {len(all_streams)}")
     else:
