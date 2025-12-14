@@ -2,7 +2,7 @@ name: Update GreekTube Playlist (Playwright)
 
 on:
   schedule:
-    - cron: '0 */6 * * *' # Κάθε 6 ώρες
+    - cron: '0 */6 * * *'
   workflow_dispatch:
 
 jobs:
@@ -23,7 +23,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install playwright playwright-stealth beautifulsoup4
+          pip install playwright beautifulsoup4
           playwright install firefox
 
       - name: Run Scraper
