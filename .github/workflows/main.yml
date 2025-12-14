@@ -40,7 +40,7 @@ jobs:
       - name: Check file existence
         id: check_file
         run: |
-          if [ -f "playlist.m3u" ]; then
+          if [ -f "GrTube.m3u" ]; then
             echo "exists=true" >> $GITHUB_OUTPUT
           else
             echo "exists=false" >> $GITHUB_OUTPUT
@@ -51,5 +51,5 @@ jobs:
         run: |
           git config --global user.name "GitHub Action"
           git config --global user.email "action@github.com"
-          git add playlist.m3u
+          git add GrTube.m3u
           git diff --quiet && git diff --staged --quiet || (git commit -m "Update playlist" && git push)
