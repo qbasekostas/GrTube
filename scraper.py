@@ -1,5 +1,4 @@
 from playwright.sync_api import sync_playwright
-from playwright_stealth import stealth_sync
 from bs4 import BeautifulSoup
 import re
 import time
@@ -11,35 +10,55 @@ START_URLS = [
     "https://greektube.pro/movies?order=created_at%3Adesc&page=2"
 ]
 
+# --- MANUAL STEALTH FUNCTION ---
+# Κρύβει το γεγονός ότι είμαστε αυτοματοποιημένο ρομπότ
+def apply_stealth(page):
+    page.add_init_script("""
+        Object.defineProperty(navigator, 'webdriver', {
+            get: () => undefined
+        });
+    """)
+    page.add_init_script("""
+        Object.defineProperty(navigator, 'languages', {
+            get: () => ['en-US', 'en']
+        });
+    """)
+    page.add_init_script("""
+        Object.defineProperty(navigator, 'plugins', {
+            get: () => [1, 2, 3, 4, 5]
+        });
+    """)
+
 def get_html_with_playwright(url):
     with sync_playwright() as p:
-        # Χρησιμοποιούμε Firefox αντί για Chromium (συχνά λιγότερο ύποπτος)
+        # Χρήση Firefox (Gecko) - Συχνά περνάει καλύτερα το Cloudflare
         browser = p.firefox.launch(headless=True)
+        
+        # Ρύθμιση Context για να μοιάζει με Windows PC
         context = browser.new_context(
             user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0',
-            viewport={'width': 1920, 'height': 1080}
+            viewport={'width': 1920, 'height': 1080},
+            locale='en-US',
+            timezone_id='Europe/Athens'
         )
         
-        # Ενεργοποίηση Stealth Mode
         page = context.new_page()
-        stealth_sync(page)
+        apply_stealth(page) # Εφαρμογή απόκρυψης
         
         print(f"Loading: {url}")
         try:
+            # Αυξάνουμε το timeout
             page.goto(url, timeout=60000, wait_until="domcontentloaded")
             
-            # Περιμένουμε λίγο μήπως έχει Cloudflare challenge
+            # Έλεγχος για Cloudflare title
             time.sleep(5)
-            
-            # Αν δούμε τίτλο "Just a moment", περιμένουμε κι άλλο
-            title = page.title()
-            if "Just a moment" in title or "Cloudflare" in title:
-                print("⚠️ Cloudflare challenge detected. Waiting...")
+            if "Just a moment" in page.title() or "Cloudflare" in page.title():
+                print("⚠️ Cloudflare challenge detected. Attempting to wait it out...")
                 time.sleep(10)
-                # Κουνάμε λίγο το ποντίκι (ψεύτικα)
-                page.mouse.move(100, 100)
-                page.mouse.down()
-                page.mouse.up()
+                # Κίνηση ποντικιού
+                page.mouse.move(random.randint(100, 500), random.randint(100, 500))
+                time.sleep(1)
+                page.mouse.click(random.randint(100, 500), random.randint(100, 500))
                 time.sleep(5)
             
             content = page.content()
@@ -69,11 +88,6 @@ def parse_movies(html_list):
 
 def process_movie(movie_url):
     print(f"Processing movie: {movie_url}")
-    # Χρειάζεται ξανά browser για κάθε ταινία; 
-    # Για οικονομία χρόνου, ας δοκιμάσουμε πρώτα να πάρουμε το HTML
-    # Αν το Cloudflare είναι aggressive, ίσως χρειαστεί να ανοίγουμε browser κάθε φορά (αργό).
-    # Εδώ θα ανοίγουμε browser για σιγουριά.
-    
     html = get_html_with_playwright(movie_url)
     if not html: return []
     
@@ -86,14 +100,13 @@ def process_movie(movie_url):
     for a in soup.find_all('a', href=True):
         if '/watch/' in a['href']:
             label = a.text.strip()
-            if "Trailer" in label: continue
+            if "Trailer" in label or "trailer" in label.lower(): continue
             if not label: label = "Stream"
             full_watch_url = a['href'] if a['href'].startswith('http') else BASE_URL + a['href']
             watch_buttons.append((label, full_watch_url))
             
     for label, w_url in watch_buttons:
         print(f"  Checking stream: {label}")
-        # Πάλι browser για το stream page
         w_html = get_html_with_playwright(w_url)
         stream_url = get_stream_link(w_html)
         
@@ -130,8 +143,8 @@ if __name__ == "__main__":
     all_movie_urls = list(set(all_movie_urls))
     print(f"Found {len(all_movie_urls)} movies.")
     
-    # Δοκιμή στις πρώτες 5 για να μην κάνει time out το Action
-    for i, movie_url in enumerate(all_movie_urls[:5]): 
+    # Δοκιμάζουμε 3 ταινίες για αρχή για να δούμε αν δουλεύει
+    for i, movie_url in enumerate(all_movie_urls[:3]): 
         streams = process_movie(movie_url)
         all_streams.extend(streams)
         
@@ -139,4 +152,4 @@ if __name__ == "__main__":
         save_m3u(all_streams)
         print("Playlist saved!")
     else:
-        print("No streams found.")
+        print("No streams found (probably blocked).")
