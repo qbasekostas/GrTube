@@ -9,7 +9,7 @@ START_URLS = [
     "https://greektube.pro/movies?order=created_at%3Adesc",
     #"https://greektube.pro/movies?order=created_at%3Adesc&page=2"
 ]
-OUTPUT_FILE = "playlist.m3u"
+OUTPUT_FILE = "GrTube.m3u"
 
 def extract_links_from_source(source):
     """Βοηθητική συνάρτηση που καθαρίζει τον κώδικα και ψάχνει λινκ"""
