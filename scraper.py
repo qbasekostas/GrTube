@@ -7,7 +7,7 @@ import os
 BASE_URL = "https://greektube.pro"
 START_URLS = [
     "https://greektube.pro/movies?order=created_at%3Adesc",
-    "https://greektube.pro/movies?order=created_at%3Adesc&page=2"
+    #"https://greektube.pro/movies?order=created_at%3Adesc&page=2"
 ]
 OUTPUT_FILE = "playlist.m3u"
 
