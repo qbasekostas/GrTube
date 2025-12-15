@@ -208,24 +208,27 @@ def smart_save_m3u(new_streams):
 
 def get_all_movie_urls():
     movie_links = []
-    print("🔵 Phase 1: Collecting URLs (Fast Mode)...")
-    # block_images=True εδώ για ταχύτητα, στη λίστα συνήθως δεν πειράζει
-    with SB(uc=True, test=True, headless=False, xvfb=True, block_images=True) as sb:
+    print("🔵 Phase 1: Collecting URLs (Secure Mode)...")
+    # ΣΗΜΑΝΤΙΚΟ: block_images=False για να μην μας κόβει το Cloudflare
+    with SB(uc=True, test=True, headless=False, xvfb=True, block_images=False) as sb:
         for list_url in START_URLS:
             try:
-                sb.uc_open_with_reconnect(list_url, reconnect_time=4)
-                try: sb.uc_gui_click_captcha(); sb.sleep(2)
-                except: pass
+                sb.uc_open_with_reconnect(list_url, reconnect_time=5)
                 
-                # Check if list loaded
+                # Check for Cloudflare
                 if "Just a moment" in sb.get_title():
-                    print("    ⚠️ Cloudflare block on list. Retrying...")
-                    sb.uc_gui_click_captcha()
-                    sb.sleep(5)
-
-                sb.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-                sb.sleep(2)
+                    print("    ⚠️ Cloudflare check. Waiting...")
+                    try: sb.uc_gui_click_captcha(); sb.sleep(4)
+                    except: pass
                 
+                # Scroll
+                sb.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                sb.sleep(3)
+                
+                # Check for content
+                try: sb.wait_for_element_present("a[href*='/titles/']", timeout=10)
+                except: print("    ⚠️ Timeout waiting for titles. Page might be blocked.")
+
                 soup = BeautifulSoup(sb.get_page_source(), 'html.parser')
                 for a in soup.find_all('a', href=True):
                     href = a['href']
@@ -241,30 +244,25 @@ def process_batch(links_batch, batch_index, total_batches):
     batch_streams = []
     print(f"🟠 Batch {batch_index}/{total_batches} ({len(links_batch)} movies)...")
     
-    # ΣΗΜΑΝΤΙΚΟ: block_images=False για να μην κολλάει το Cloudflare στις ταινίες
     with SB(uc=True, test=True, headless=False, xvfb=True, block_images=False) as sb:
         for i, m_url in enumerate(links_batch):
             print(f"   Processing: {m_url}")
             try:
                 sb.uc_open_with_reconnect(m_url, reconnect_time=4)
                 
-                # Check for Cloudflare Block on Movie Page
+                # Check Cloudflare
                 if "Just a moment" in sb.get_title():
-                    print("     ⚠️ Cloudflare detected. Attempting solve...")
+                    print("     ⚠️ Cloudflare detected.")
                     try: sb.uc_gui_click_captcha()
                     except: pass
                     sb.sleep(5)
                 
-                # Wait for title to appear (Success check)
-                try: sb.wait_for_element_present("h1", timeout=5)
-                except: pass
-
                 msource = sb.get_page_source()
                 msoup = BeautifulSoup(msource, 'html.parser')
                 title_tag = msoup.find('h1')
                 
                 if not title_tag:
-                    print(f"     ❌ Page failed to load properly. Title: {sb.get_title()}")
+                    print(f"     ❌ Page load failed.")
                     continue
 
                 title = title_tag.text.strip()
@@ -291,7 +289,6 @@ def process_batch(links_batch, batch_index, total_batches):
                     stream_link, sub_link, dynamic_referer = get_stream_and_sub(sb, watch_url)
                 else:
                     # 4. Fallback Auto-Play
-                    # print("     -> Auto-play check...")
                     stream_link, sub_link, dynamic_referer = get_stream_and_sub(sb, m_url)
 
                 if stream_link:
@@ -313,6 +310,11 @@ def process_batch(links_batch, batch_index, total_batches):
 
 def main():
     all_movie_urls = get_all_movie_urls()
+    
+    if not all_movie_urls:
+        print("❌ Failed to collect movies. Exiting.")
+        return
+
     total_streams = []
     num_batches = math.ceil(len(all_movie_urls) / BATCH_SIZE)
     
