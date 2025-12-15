@@ -1,8 +1,8 @@
-name: Update GreekTube Playlist (Stable)
+name: Update GreekTube Playlist (Network Sniffer)
 
 on:
   schedule:
-    - cron: '0 17 * * *'
+    - cron: '0 17 * * *' # 17:00 UTC = 19:00/20:00 GR
   workflow_dispatch:
 
 jobs:
@@ -21,25 +21,33 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Install Dependencies
+      # 1. Εγκατάσταση απαραίτητων εργαλείων συστήματος (Chrome & Xvfb για εικονική οθόνη)
+      - name: Install System Dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y xvfb google-chrome-stable
+
+      # 2. Εγκατάσταση Python βιβλιοθηκών
+      - name: Install Python Dependencies
+        run: |
           pip install seleniumbase beautifulsoup4
+          # Κατεβάζουμε τον κατάλληλο driver για τον Chrome
           seleniumbase install chromedriver
 
+      # 3. Εκτέλεση του Scraper μέσα σε εικονική οθόνη
       - name: Run Scraper
         run: xvfb-run python scraper.py
 
+      # 4. Commit & Push (Μόνο αν υπάρχει το αρχείο και δεν είναι άδειο)
       - name: Commit and Push
         run: |
           git config --global user.name "GitHub Action"
           git config --global user.email "action@github.com"
           
-          # Check if file exists and has size
           if [ -s GrTube.m3u ]; then
             git add GrTube.m3u
             git diff --quiet && git diff --staged --quiet || (git commit -m "Update playlist" && git push)
+            echo "✅ Changes pushed successfully."
           else
             echo "⚠️ Playlist is empty or missing. Skipping commit."
           fi
