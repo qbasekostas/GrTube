@@ -15,7 +15,6 @@ OUTPUT_FILE = "GrTube.m3u"
 BATCH_SIZE = 5
 
 def close_popups(sb, main_window):
-    """Κλείνει τα παράθυρα διαφημίσεων"""
     try:
         if len(sb.driver.window_handles) > 1:
             for handle in sb.driver.window_handles:
@@ -23,37 +22,37 @@ def close_popups(sb, main_window):
                     sb.driver.switch_to.window(handle)
                     sb.driver.close()
             sb.driver.switch_to.window(main_window)
-            return True
-    except:
-        try: sb.driver.switch_to.window(main_window)
-        except: pass
-    return False
+    except: pass
 
 def get_network_video(sb):
-    """
-    ΜΙΜΗΣΗ DEVTOOLS NETWORK TAB
-    Ρωτάει τον browser τι αρχεία φόρτωσε.
-    """
+    """Network Sniffer (DevTools)"""
     try:
-        # Script που επιστρέφει όλα τα URL που φορτώθηκαν (Resources)
         logs = sb.execute_script("""
             return window.performance.getEntriesByType("resource")
                 .map(r => r.name)
                 .filter(n => n.match(/\.(mp4|m3u8|txt)|master/));
         """)
-        
-        # Ελέγχουμε τα logs από το τέλος προς την αρχή (τα πιο πρόσφατα)
         for url in reversed(logs):
-            # Αγνοούμε σκουπίδια
-            if any(x in url for x in ["google", "facebook", "analytics", "svg", "png", "jpg", "vtt", "srt"]):
-                continue
-            
-            # Αν βρούμε .txt, .mp4 ή .m3u8 που δεν είναι υπότιτλος
-            if "master.txt" in url or ".mp4" in url or ".m3u8" in url:
+            if any(ext in url for ext in ['.mp4', '.m3u8', '.txt']) and not any(bad in url for bad in ['google', 'facebook', 'analytics', 'svg', 'jpg']):
                 return url
+    except: pass
+    return None
+
+def extract_bootstrap_link(soup):
+    """Βρίσκει το link από τον κώδικα (JSON)"""
+    try:
+        scripts = soup.find_all('script')
+        for s in scripts:
+            if s.string and 'window.bootstrapData' in s.string:
+                # Regex για να βρούμε το src γρήγορα και βρώμικα
+                match = re.search(r'"src"\s*:\s*"([^"]+)"', s.string)
+                if not match: match = re.search(r"'src'\s*:\s*'([^']+)'", s.string)
                 
-    except Exception as e:
-        print(f"    DevTools Error: {e}")
+                if match:
+                    url = match.group(1).replace(r'\/', '/')
+                    if "http" in url and ("upns" in url or "embed" in url or "greektube" in url):
+                        return url
+    except: pass
     return None
 
 def get_stream_with_devtools(sb, watch_url):
@@ -62,81 +61,67 @@ def get_stream_with_devtools(sb, watch_url):
     sub_url = None
 
     try:
-        # 1. Πάμε στη σελίδα της ταινίας
         if sb.get_current_url() != watch_url:
             sb.uc_open_with_reconnect(watch_url, reconnect_time=3)
         
         main_win = sb.driver.current_window_handle
+        time.sleep(2)
 
-        # 2. Ψάχνουμε αν υπάρχει Iframe Player (π.χ. upns.pro)
-        # Δεν μας νοιάζει το HTML, θέλουμε μόνο το SRC του iframe
+        # 1. Ψάχνουμε το Link στον κώδικα (JSON/Regex)
         soup = BeautifulSoup(sb.get_page_source(), 'html.parser')
-        
-        # Βρίσκουμε το src του iframe ή το embed url από JS (πιο απλά τώρα)
-        player_url = None
-        
-        # Check 1: JSON bootstrap (γρήγορος τρόπος να βρούμε το upns link)
-        scripts = soup.find_all('script')
-        for s in scripts:
-            if s.string and 'upns.pro' in s.string:
-                match = re.search(r'(https?://[^"\']*upns\.pro[^"\']*)', s.string)
-                if match: 
-                    player_url = match.group(1).replace(r'\/', '/')
-                    break
-        
-        # Check 2: Iframe tag
-        if not player_url:
-            iframe = sb.find_element("iframe", timeout=2)
-            if iframe:
-                src = iframe.get_attribute("src")
-                if "google" not in src:
-                    player_url = src
+        target_url = extract_bootstrap_link(soup)
 
-        # 3. ΑΝ ΒΡΗΚΑΜΕ ΕΞΩΤΕΡΙΚΟ PLAYER -> ΠΑΜΕ ΕΚΕΙ!
-        if player_url:
-            # print(f"    -> Going to Player: {player_url}")
-            sb.uc_open_with_reconnect(player_url, reconnect_time=3)
-            final_referer = player_url
-            main_win = sb.driver.current_window_handle
-        
-        # 4. ΚΛΙΚ & LOAD (Για να γεμίσει το Network Tab)
-        # Κάνουμε κλικ για να ξεκινήσει το traffic
-        time.sleep(1)
-        try: sb.click("body", timeout=0.5)
-        except: pass
-        
-        # Κλείνουμε διαφημίσεις
-        if close_popups(sb, main_win):
-            try: sb.click("body", timeout=0.5) # Ξανακλικ αν έκλεισε popup
+        # 2. Αν δεν το βρήκαμε στο JSON, ψάχνουμε για Iframe (ΧΩΡΙΣ ΝΑ ΚΡΑΣΑΡΟΥΜΕ)
+        if not target_url:
+            try:
+                # Χρησιμοποιούμε find_elements που δεν πετάει error αν είναι άδειο
+                iframes = sb.driver.find_elements("css selector", "iframe")
+                for frame in iframes:
+                    src = frame.get_attribute("src")
+                    if src and "google" not in src:
+                        target_url = src
+                        break
             except: pass
-            
-        # Ψάχνουμε Play buttons
-        click_targets = ["video", "#player", ".jw-display-icon", ".play-button"]
+
+        # 3. Πάμε στον Player
+        if target_url:
+            if not target_url.startswith("http"): target_url = BASE_URL + target_url
+            # print(f"    -> Redirect: {target_url}")
+            if target_url != watch_url:
+                sb.uc_open_with_reconnect(target_url, reconnect_time=3)
+                final_referer = target_url
+                main_win = sb.driver.current_window_handle
+
+        # 4. ΚΛΙΚ & SNIFF (Η βασική δουλειά)
+        time.sleep(1)
+        close_popups(sb, main_win)
+        
+        # Τυφλά κλικ για να ξεκινήσει το βίντεο
+        click_targets = ["video", "#player", ".jw-display-icon", ".play-button", "body", "div[id*='player']"]
         for target in click_targets:
             try: 
                 sb.click(target, timeout=0.5)
-                break
+                close_popups(sb, main_win) # Κλείσιμο αν πετάχτηκε διαφήμιση
             except: pass
 
-        # ΠΕΡΙΜΕΝΟΥΜΕ ΤΟ NETWORK (4 δευτερόλεπτα)
-        time.sleep(4)
+        time.sleep(4) # Αναμονή για Network
         
-        # 5. ΔΙΑΒΑΖΟΥΜΕ ΤΟ "DEVTOOLS" (Performance API)
+        # 5. Έλεγχος Network Logs
         video_url = get_network_video(sb)
-        
-        # Αν δεν βρέθηκε, ίσως θέλει κι άλλο κλικ;
-        if not video_url:
-            # print("    -> Retrying click...")
-            try: sb.click("video", timeout=1); time.sleep(3)
-            except: pass
-            video_url = get_network_video(sb)
 
-        # Υπότιτλοι (από source code, πιο εύκολο)
+        # Fallback: Αν δεν βρέθηκε στο network, ψάχνουμε στο source μήπως γράφτηκε εκεί
+        if not video_url:
+            src = sb.get_page_source().replace(r'\/', '/')
+            match = re.search(r'(https?://[^"\'<>\s]+\.(?:mp4|m3u8|txt)(?:[^"\'<>\s]*)?)', src)
+            if match and "google" not in match.group(1):
+                video_url = match.group(1)
+
+        # Subs
         sub_match = re.search(r'(https?://[^"\'<>\s]+\.(?:vtt|srt)(?:[^"\'<>\s]*)?)', sb.get_page_source().replace(r'\/', '/'))
         if sub_match: sub_url = sub_match.group(1)
 
     except Exception as e:
-        print(f"    Error: {e}")
+        print(f"    Gen Error: {e}")
         try: sb.driver.switch_to.window(sb.driver.window_handles[0])
         except: pass
 
@@ -189,9 +174,8 @@ def get_all_movie_urls():
                 
                 sb.execute_script("window.scrollTo(0, document.body.scrollHeight);")
                 sb.sleep(2)
-                try: sb.wait_for_element_present("a[href*='/titles/']", timeout=15)
-                except: pass
-
+                
+                # Απλό και γρήγορο BeautifulSoup για τα links
                 soup = BeautifulSoup(sb.get_page_source(), 'html.parser')
                 for a in soup.find_all('a', href=True):
                     href = a['href']
@@ -240,25 +224,26 @@ def process_batch(links):
                             watch_url = a['href'] if a['href'].startswith('http') else BASE_URL + a['href']
                             break
 
-                # 3. Execution (Network Sniffer Mode)
-                target = watch_url if watch_url else url # Αν δεν βρει κουμπί, δοκιμάζει auto-play
-                
+                target = watch_url if watch_url else url 
                 v, s, r = get_stream_with_devtools(sb, target)
                 
                 if v:
                     v = v.split('"')[0].split("'")[0]
-                    print(f"     + Found (Net): {v}")
+                    print(f"     + Found: {v}")
                     batch_streams.append({'title': title, 'url': v, 'subtitle': s, 'referer': r})
                 else:
-                    print("     - No stream found in Network Logs.")
+                    print("     - No stream found.")
 
-            except Exception as e: print(f"    Error: {e}")
+            except Exception as e: print(f"    Skipped: {e}")
             
     return batch_streams
 
 def main():
     all_links = get_all_movie_urls()
-    if not all_links: return
+    if not all_links: 
+        # Create empty file to avoid git error
+        with open(OUTPUT_FILE, "w") as f: f.write("")
+        return
     
     total_streams = []
     num_batches = math.ceil(len(all_links) / BATCH_SIZE)
@@ -273,7 +258,10 @@ def main():
         time.sleep(2)
         
     if total_streams: smart_save_m3u(total_streams)
-    else: print("❌ No streams.")
+    else: 
+        print("❌ No streams.")
+        if not os.path.exists(OUTPUT_FILE):
+             with open(OUTPUT_FILE, "w") as f: f.write("")
 
 if __name__ == "__main__":
     main()
