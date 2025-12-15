@@ -1,17 +1,24 @@
 from playwright.sync_api import sync_playwright
-from bs4 import BeautifulSoup
 import time
 import os
 import json
 import re
+import random
 
 BASE_URL = "https://greektube.pro"
 START_URLS = [
     "https://greektube.pro/movies?order=created_at%3Adesc",
     "https://greektube.pro/movies?order=created_at%3Adesc&page=2"
 ]
-# Ορίστηκε το όνομα που ήθελες
 OUTPUT_FILE = "GrTube.m3u"
+
+# --- NETWORK BLOCKER (ΓΙΑ ΤΑΧΥΤΗΤΑ) ---
+def intercept_route(route):
+    """Μπλοκάρει εικόνες, fonts και διαφημίσεις για να μην κολλάει η σελίδα"""
+    if route.request.resource_type in ["image", "stylesheet", "font", "media"]:
+        route.abort()
+    else:
+        route.continue_()
 
 def smart_save_m3u(new_streams):
     old_entries = []
@@ -34,7 +41,6 @@ def smart_save_m3u(new_streams):
 
     new_titles = [s['title'] for s in new_streams]
     unique_old_entries = [entry for entry in old_entries if entry['title'] not in new_titles]
-    print(f"♻️  Keeping {len(unique_old_entries)} older movies.")
 
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
         f.write("#EXTM3U\n")
@@ -59,15 +65,20 @@ def get_final_video_url(page, url):
         
         page.on("popup", handle_popup)
         
-        # Αυξημένο timeout για τα popups
-        page.goto(url, wait_until="domcontentloaded", timeout=25000)
+        # Πηγαίνουμε με timeout 20s
+        page.goto(url, wait_until="domcontentloaded", timeout=20000)
         
+        # Human Interaction Simulation
         try:
             time.sleep(1)
+            page.mouse.move(random.randint(100, 500), random.randint(100, 500))
             page.mouse.click(200, 200)
             time.sleep(0.5)
-            if page.locator("video").count() > 0:
-                page.locator("video").first.click(timeout=1000)
+            # Προσπάθεια κλικ σε στοιχεία βίντεο
+            page.evaluate("""() => {
+                const buttons = document.querySelectorAll('video, .play-button, .jw-display-icon');
+                if(buttons.length > 0) buttons[0].click();
+            }""")
         except: pass
         
         time.sleep(3) 
@@ -90,14 +101,16 @@ def get_final_video_url(page, url):
 def process_movie(page, movie_url):
     print(f"Processing: {movie_url}")
     try:
-        # Αυξημένο timeout για τη σελίδα ταινίας
-        page.goto(movie_url, wait_until="domcontentloaded", timeout=40000)
+        page.goto(movie_url, wait_until="domcontentloaded", timeout=30000)
         
+        # Ανίχνευση Cloudflare
         if "Just a moment" in page.title():
             print("    ⚠️ Cloudflare detected. Waiting...")
-            time.sleep(6)
+            time.sleep(5)
+            # Κίνηση ποντικιού
+            page.mouse.move(100, 100)
+            time.sleep(1)
         
-        # Τραβάμε τα JSON data
         bootstrap_data = page.evaluate("() => window.bootstrapData")
         
         if not bootstrap_data:
@@ -112,14 +125,13 @@ def process_movie(page, movie_url):
         video_src = None
         loaders = bootstrap_data.get('loaders', {})
         
-        # 1. Direct Video
+        # Priority Check Logic
         try:
             video_data = loaders.get('watchPage', {}).get('video', {})
             if video_data and 'src' in video_data:
                 video_src = video_data['src']
         except: pass
 
-        # 2. Video List
         if not video_src:
             videos = loaders.get('titlePage', {}).get('videos', [])
             for vid in videos:
@@ -132,7 +144,6 @@ def process_movie(page, movie_url):
                         video_src = f"{BASE_URL}/watch/{vid['id']}"
                         break
         
-        # 3. Primary Video
         if not video_src:
             primary = loaders.get('titlePage', {}).get('title', {}).get('primary_video')
             if primary and primary.get('category') == 'full':
@@ -152,14 +163,9 @@ def process_movie(page, movie_url):
             if final_url:
                 final_url = final_url.split('"')[0].split("'")[0]
                 print(f"    + Found: {final_url}")
-                return {
-                    'title': title,
-                    'url': final_url,
-                    'subtitle': sub_url,
-                    'referer': referer
-                }
+                return {'title': title, 'url': final_url, 'subtitle': sub_url, 'referer': referer}
         else:
-            print("    - No video source found in data.")
+            print("    - No video source found.")
 
     except Exception as e:
         print(f"    Error: {e}")
@@ -167,31 +173,36 @@ def process_movie(page, movie_url):
 
 def main():
     with sync_playwright() as p:
-        browser = p.firefox.launch(headless=True)
+        # ΣΗΜΑΝΤΙΚΟ: headless=False για να νομίζει ότι υπάρχει οθόνη (μέσω Xvfb)
+        browser = p.firefox.launch(headless=False) 
+        
         context = browser.new_context(
             user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0',
             viewport={'width': 1920, 'height': 1080},
             ignore_https_errors=True
         )
         page = context.new_page()
+        
+        # ΜΠΛΟΚΑΡΙΣΜΑ ΦΟΡΤΩΣΗΣ ΕΙΚΟΝΩΝ (Ταχύτητα + Λιγότερα Timeouts)
+        page.route("**/*", intercept_route)
+
+        # Stealth
         page.add_init_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
 
         all_movie_urls = []
-        print("🔵 Phase 1: Collecting URLs...")
+        print("🔵 Phase 1: Collecting URLs (Headful Xvfb Mode)...")
         
         for list_url in START_URLS:
             try:
-                # Χρησιμοποιούμε wait_until='commit' (πιο γρήγορο) και μετά περιμένουμε το element
-                page.goto(list_url, wait_until="commit", timeout=60000)
+                page.goto(list_url, wait_until="domcontentloaded", timeout=60000)
                 
-                # Περιμένουμε συγκεκριμένα να εμφανιστούν ταινίες
-                try:
-                    page.wait_for_selector('a[href*="/titles/"]', timeout=30000)
-                except:
-                    print(f"    ⚠️ Timeout waiting for selectors on {list_url}")
-                    # Αν αποτύχει, ίσως είναι Cloudflare, κάνουμε ένα screenshot/dump αν χρειαστεί ή απλά συνεχίζουμε
-                
-                # Scroll
+                # Human-like wait
+                time.sleep(3)
+                if "Just a moment" in page.title():
+                    print("    ⚠️ Cloudflare on list. Moving mouse...")
+                    page.mouse.move(200, 200)
+                    time.sleep(5)
+
                 page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
                 time.sleep(2)
                 
@@ -202,26 +213,27 @@ def main():
                 for link in links:
                     if link not in all_movie_urls:
                         all_movie_urls.append(link)
+                
+                print(f"    Collected {len(links)} from page.")
                         
             except Exception as e:
-                print(f"Error loading list {list_url}: {e}")
+                print(f"    Error loading list: {e}")
 
-        print(f"🟢 Found {len(all_movie_urls)} movies.")
+        print(f"🟢 Found {len(all_movie_urls)} total movies.")
         
         all_streams = []
         for i, movie_url in enumerate(all_movie_urls):
-            
             result = process_movie(page, movie_url)
             if result:
                 all_streams.append(result)
             
-            if (i + 1) % 15 == 0:
-                print("🔄 Restarting Browser (Memory Cleanup)...")
+            # Restart Context (Soft Restart) κάθε 20 ταινίες
+            if (i + 1) % 20 == 0:
+                print("🔄 Restarting Context...")
                 context.close()
-                browser.close()
-                browser = p.firefox.launch(headless=True)
                 context = browser.new_context(user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0')
                 page = context.new_page()
+                page.route("**/*", intercept_route)
                 page.add_init_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
 
         browser.close()
@@ -229,7 +241,9 @@ def main():
         if all_streams:
             smart_save_m3u(all_streams)
         else:
-            print("❌ No streams found.")
+            print("❌ No streams found. (Check GitHub Artifacts/Logs)")
+            # Δημιουργία κενού αρχείου για να μην σκάσει το git
+            with open(OUTPUT_FILE, "w") as f: f.write("")
 
 if __name__ == "__main__":
     main()
