@@ -21,18 +21,33 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Install dependencies
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb
+
+      - name: Install Python dependencies
         run: |
           pip install playwright beautifulsoup4
           playwright install firefox
 
-      - name: Run Scraper
-        run: python scraper.py
+      - name: Run Scraper (with Xvfb)
+        # Τρέχουμε με xvfb-run για να δουλέψει το headless=False
+        run: xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" python scraper.py
+
+      - name: Check file existence
+        id: check_file
+        run: |
+          if [ -s "GrTube.m3u" ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Commit and Push
+        if: steps.check_file.outputs.exists == 'true'
         run: |
           git config --global user.name "GitHub Action"
           git config --global user.email "action@github.com"
-          # ΣΗΜΑΝΤΙΚΟ: Εδώ βάζουμε το νέο όνομα
           git add GrTube.m3u
           git diff --quiet && git diff --staged --quiet || (git commit -m "Update playlist" && git push)
