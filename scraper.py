@@ -14,35 +14,31 @@ START_URLS = [
 OUTPUT_FILE = "GrTube.m3u"
 BATCH_SIZE = 6 
 
+# --- NETWORK SNIFFER HELPER ---
 def sniff_network_logs(sb):
-    """
-    Μιμείται το Network Tab του DevTools.
-    Ρωτάει τον browser τι αρχεία έχει φορτώσει (.txt, .mp4, .m3u8).
-    """
+    """Ψάχνει το Network Tab για .mp4, .m3u8, .txt"""
     try:
-        # 1. Έλεγχος ACTIVE Video Source
+        # 1. Active Video Tag
         video_tag_src = sb.execute_script("""
             var v = document.querySelector('video');
             return v ? v.src : null;
         """)
-        if video_tag_src and "blob:" not in video_tag_src:
-            return video_tag_src
+        if video_tag_src and "blob:" not in video_tag_src: return video_tag_src
 
-        # 2. Performance API (Network Traffic)
+        # 2. Network Traffic
         network_files = sb.execute_script("""
             return window.performance.getEntriesByType("resource")
                 .map(x => x.name)
-                .filter(x => x.includes('.txt') || x.includes('.mp4') || x.includes('.m3u8') || x.includes('master'));
+                .filter(x => x.includes('.txt') || x.includes('.mp4') || x.includes('.m3u8'));
         """)
         
-        # Ανάποδη σειρά για να βρούμε το πιο πρόσφατο
         for url in reversed(network_files):
-            if any(ext in url for ext in ['.mp4', '.m3u8', '.txt']) and not any(bad in url for bad in ['google', 'facebook', 'analytics', 'svg', 'jpg']):
+            if not any(bad in url for bad in ['google', 'facebook', 'analytics', 'svg', 'jpg']):
                 return url
-    except Exception as e:
-        print(f"    Sniffer Error: {e}")
+    except: pass
     return None
 
+# --- JSON PARSER ---
 def extract_from_bootstrap_json(soup):
     try:
         scripts = soup.find_all('script')
@@ -57,8 +53,7 @@ def extract_from_bootstrap_json(soup):
                         loaders = data.get('loaders', {})
                         
                         video_data = loaders.get('watchPage', {}).get('video', {})
-                        if video_data and 'src' in video_data:
-                            return video_data['src'].replace(r'\/', '/')
+                        if video_data and 'src' in video_data: return video_data['src'].replace(r'\/', '/')
                         
                         title_page = loaders.get('titlePage', {}).get('title', {})
                         primary = title_page.get('primary_video')
@@ -96,20 +91,19 @@ def get_stream_and_sub(sb, watch_url):
             sb.uc_open_with_reconnect(target_url, reconnect_time=3)
             final_referer = target_url
 
-        # 2. CLICK & LOAD
+        # 2. CLICK & LOAD (Anti-Idle)
         sb.sleep(1)
         if len(sb.driver.window_handles) > 1:
             sb.driver.switch_to.window(sb.driver.window_handles[0])
         
-        # Τυφλά κλικ για να ενεργοποιηθεί το δίκτυο
-        try: sb.click("body", timeout=0.5); sb.sleep(0.2)
+        try: sb.click("body", timeout=0.5)
         except: pass
         try: sb.click("video", timeout=0.5)
         except: pass
         
         sb.sleep(4) 
         
-        # 3. SNIFFER (Network Tab)
+        # 3. SNIFFER
         video_url = sniff_network_logs(sb)
         
         # Fallback Source Regex
@@ -120,14 +114,12 @@ def get_stream_and_sub(sb, watch_url):
             if match and not any(x in match.group(1) for x in ["google", "facebook"]):
                 video_url = match.group(1)
 
-        # Subs
         clean_source = sb.get_page_source().replace(r'\/', '/')
         sub_regex = r'(https?://[^"\'<>\s]+\.(?:vtt|srt)(?:[^"\'<>\s]*)?)'
         sub_match = re.search(sub_regex, clean_source)
         if sub_match: sub_url = sub_match.group(1)
 
     except Exception as e: 
-        # print(f"    ! Error: {e}")
         try: sb.driver.switch_to.window(sb.driver.window_handles[0])
         except: pass
         
@@ -170,15 +162,28 @@ def smart_save_m3u(new_streams):
 
 def get_all_movie_urls():
     movie_links = []
-    print("🔵 Phase 1: Collecting URLs...")
-    with SB(uc=True, test=True, headless=False, xvfb=True, block_images=True) as sb:
+    print("🔵 Phase 1: Collecting URLs (Images Enabled)...")
+    
+    # ΣΗΜΑΝΤΙΚΟ: block_images=False για να μην κολλάει το Cloudflare
+    with SB(uc=True, test=True, headless=False, xvfb=True, block_images=False) as sb:
         for list_url in START_URLS:
             try:
-                sb.uc_open_with_reconnect(list_url, reconnect_time=5)
-                try: sb.uc_gui_click_captcha(); sb.sleep(2)
-                except: pass
+                sb.uc_open_with_reconnect(list_url, reconnect_time=6)
+                if "Just a moment" in sb.get_title():
+                    sb.uc_gui_click_captcha(); sb.sleep(4)
+                
+                # Scroll
                 sb.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-                sb.sleep(2)
+                sb.sleep(3)
+                
+                # Explicit Wait: Περιμένουμε να εμφανιστούν οι σύνδεσμοι
+                try:
+                    sb.wait_for_element_present("a[href*='/titles/']", timeout=15)
+                except:
+                    print("    ⚠️ Timeout waiting for titles. Trying refresh...")
+                    sb.refresh()
+                    sb.sleep(5)
+
                 soup = BeautifulSoup(sb.get_page_source(), 'html.parser')
                 for a in soup.find_all('a', href=True):
                     href = a['href']
@@ -186,11 +191,13 @@ def get_all_movie_urls():
                         full_link = href if href.startswith('http') else BASE_URL + href
                         if full_link not in movie_links: movie_links.append(full_link)
             except Exception as e: print(f"    List error: {e}")
+            
     print(f"🟢 Found {len(movie_links)} movies.")
     return movie_links
 
 def process_batch(links):
     batch_streams = []
+    # block_images=False και εδώ για ασφάλεια
     with SB(uc=True, test=True, headless=False, xvfb=True, block_images=False) as sb:
         for url in links:
             print(f"   Processing: {url}")
@@ -228,7 +235,7 @@ def process_batch(links):
                         v = v.split('"')[0].split("'")[0]
                         print(f"     + Found: {v}")
                         batch_streams.append({'title': title, 'url': v, 'subtitle': s, 'referer': r})
-                    else: print("     - No stream found (Sniffer empty).")
+                    else: print("     - No stream found.")
                 else:
                     v, s, r = get_stream_and_sub(sb, url)
                     if v:
@@ -242,7 +249,12 @@ def process_batch(links):
 
 def main():
     all_links = get_all_movie_urls()
-    if not all_links: return
+    
+    # Αν δεν βρει ταινίες, φτιάχνουμε κενό αρχείο για να μην σκάσει το git
+    if not all_links:
+        print("❌ No movies found in Phase 1.")
+        with open(OUTPUT_FILE, "w") as f: f.write("")
+        return
     
     total_streams = []
     num_batches = math.ceil(len(all_links) / BATCH_SIZE)
@@ -250,14 +262,21 @@ def main():
     for i in range(num_batches):
         print(f"🟠 Batch {i+1}/{num_batches}...")
         batch = all_links[i*BATCH_SIZE : (i+1)*BATCH_SIZE]
+        
         try:
             res = process_batch(batch)
             total_streams.extend(res)
-        except Exception as e: print(f"💥 Batch Error: {e}")
+        except Exception as e:
+            print(f"💥 Batch Error: {e}")
+            
         time.sleep(2) 
         
     if total_streams: smart_save_m3u(total_streams)
-    else: print("❌ All failed.")
+    else: print("❌ No streams found.")
+    
+    # Ensure file exists
+    if not os.path.exists(OUTPUT_FILE):
+        with open(OUTPUT_FILE, "w") as f: f.write("")
 
 if __name__ == "__main__":
     main()
