@@ -1,8 +1,8 @@
-name: Update GreekTube Playlist (SeleniumBase)
+name: Update GreekTube Playlist (Playwright)
 
 on:
   schedule:
-    - cron: '0 17 * * *'
+    - cron: '0 17 * * *' # 17:00 UTC = 19:00/20:00 GR
   workflow_dispatch:
 
 jobs:
@@ -21,33 +21,15 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Install Dependencies
+      - name: Install dependencies
         run: |
-          # Εγκατάσταση βασικών πακέτων για το σύστημα
-          sudo apt-get update
-          sudo apt-get install -y xvfb google-chrome-stable
-          
-          # Εγκατάσταση SeleniumBase
-          pip install seleniumbase beautifulsoup4
-          
-          # Εγκατάσταση του driver μέσω του SeleniumBase
-          seleniumbase install chromedriver
+          pip install playwright
+          playwright install firefox
 
       - name: Run Scraper
-        # Τρέχουμε το script μέσα σε εικονική οθόνη (xvfb-run)
-        run: xvfb-run python scraper.py
-
-      - name: Check file existence
-        id: check_file
-        run: |
-          if [ -f "GrTube.m3u" ]; then
-            echo "exists=true" >> $GITHUB_OUTPUT
-          else
-            echo "exists=false" >> $GITHUB_OUTPUT
-          fi
+        run: python scraper.py
 
       - name: Commit and Push
-        if: steps.check_file.outputs.exists == 'true'
         run: |
           git config --global user.name "GitHub Action"
           git config --global user.email "action@github.com"
