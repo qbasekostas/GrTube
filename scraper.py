@@ -12,7 +12,7 @@ START_URLS = [
     "https://greektube.pro/movies?order=created_at%3Adesc&page=2"
 ]
 OUTPUT_FILE = "GrTube.m3u"
-BATCH_SIZE = 20 
+BATCH_SIZE = 10 
 
 # --- HELPERS ---
 
@@ -35,30 +35,18 @@ def extract_final_link(source):
     return video_url, sub_url
 
 def handle_popups_smartly(sb, main_window):
-    """
-    Ελέγχει τα νέα παράθυρα.
-    Αν είναι Player (upns, embed) -> Τραβάει το link.
-    Αν είναι Διαφήμιση -> Το κλείνει.
-    """
     found_video = None
     found_sub = None
     found_referer = None
-
     try:
-        # Αν υπάρχουν έξτρα παράθυρα
         if len(sb.driver.window_handles) > 1:
             for handle in sb.driver.window_handles:
                 if handle != main_window:
                     sb.driver.switch_to.window(handle)
-                    time.sleep(1.5) # Περιμένουμε να φορτώσει το URL
-                    
+                    time.sleep(1.5) 
                     current_url = sb.get_current_url()
-                    # print(f"      Checking Popup: {current_url}")
-
-                    # ΕΛΕΓΧΟΣ: Είναι αυτός ο Player;
+                    
                     if any(x in current_url for x in ["upns.pro", "eyetherapi", "embed", "greektube"]):
-                        # ΝΑΙ! Είναι ο player. Τραβάμε τα δεδομένα.
-                        # print("      ! IT IS A PLAYER POPUP !")
                         sb.sleep(3)
                         src = sb.get_page_source()
                         v, s = extract_final_link(src)
@@ -67,16 +55,11 @@ def handle_popups_smartly(sb, main_window):
                             found_sub = s
                             found_referer = current_url
                     
-                    # Κλείνουμε το παράθυρο (είτε ήταν ad είτε player που διαβάσαμε)
                     sb.driver.close()
-            
-            # Επιστροφή στη βάση
             sb.driver.switch_to.window(main_window)
     except Exception as e:
-        print(f"      Popup Error: {e}")
         try: sb.driver.switch_to.window(main_window)
         except: pass
-
     return found_video, found_sub, found_referer
 
 def extract_from_bootstrap_json(soup):
@@ -93,22 +76,18 @@ def extract_from_bootstrap_json(soup):
                         data = json.loads(json_str)
                         loaders = data.get('loaders', {})
                         
-                        # Check WatchPage
                         video_data = loaders.get('watchPage', {}).get('video', {})
                         if video_data and 'src' in video_data:
                             return video_data['src'].replace(r'\/', '/')
                             
-                        # Check Primary
                         title_page = loaders.get('titlePage', {}).get('title', {})
                         primary = title_page.get('primary_video')
                         if primary and primary.get('category') == 'full':
                              vid_id = primary.get('id')
                              if vid_id: return f"{BASE_URL}/watch/{vid_id}"
 
-                        # Check List
                         videos_list = loaders.get('titlePage', {}).get('videos', [])
                         for vid in videos_list:
-                             # Φίλτρο για CAM-TS, Full, κλπ
                             if vid.get('category') == 'full' or (vid.get('type') == 'embed' and 'trailer' not in vid.get('name', '').lower()):
                                 if vid.get('src'): return vid.get('src', '').replace(r'\/', '/')
                                 if vid.get('id'): return f"{BASE_URL}/watch/{vid['id']}"
@@ -116,7 +95,7 @@ def extract_from_bootstrap_json(soup):
     except: pass
     return None
 
-def get_stream_and_sub(sb, watch_url, is_watch_page=True):
+def get_stream_and_sub(sb, watch_url):
     video_url = None
     sub_url = None
     final_referer = watch_url 
@@ -127,36 +106,32 @@ def get_stream_and_sub(sb, watch_url, is_watch_page=True):
         
         main_window_handle = sb.driver.current_window_handle 
         
-        # 1. Έλεγχος Popups ΠΡΙΝ κάνουμε οτιδήποτε (μήπως άνοιξε ήδη;)
         v, s, r = handle_popups_smartly(sb, main_window_handle)
         if v: return v, s, r
 
         source = sb.get_page_source()
         soup = BeautifulSoup(source, 'html.parser')
 
-        # 2. Bootstrap JSON
+        # 1. Bootstrap JSON
         bootstrap_link = extract_from_bootstrap_json(soup)
         if bootstrap_link:
             if not bootstrap_link.startswith("http"): bootstrap_link = BASE_URL + bootstrap_link
             
-            # Αν το link είναι εξωτερικό (upns.pro), το ανοίγουμε
             sb.uc_open_with_reconnect(bootstrap_link, reconnect_time=3)
             final_referer = bootstrap_link
             
-            # Κλικ για να ξυπνήσει
             sb.sleep(1)
             try: sb.click("body", timeout=0.5)
             except: pass
             
-            # Έλεγχος Popups μετά το κλικ
             v, s, r = handle_popups_smartly(sb, main_window_handle)
             if v: return v, s, r
             
-            sb.sleep(4)
+            sb.sleep(3)
             v, s = extract_final_link(sb.get_page_source())
             if v: return v, s, final_referer
 
-        # 3. Iframe Fallback
+        # 2. Iframe Fallback
         iframes = sb.find_elements("iframe")
         if iframes:
             for i in range(len(iframes)):
@@ -184,7 +159,7 @@ def get_stream_and_sub(sb, watch_url, is_watch_page=True):
         if v: return v, s, final_referer
                 
     except Exception as e: 
-        print(f"    ! Error getting stream: {e}")
+        print(f"    ! Error: {e}")
         
     return None, None, final_referer
 
@@ -255,25 +230,19 @@ def process_batch(links_batch, batch_index, total_batches):
     
     with SB(uc=True, test=True, headless=False, xvfb=True, block_images=False) as sb:
         for i, m_url in enumerate(links_batch):
-            
-            # --- CRASH GUARD: Αν ο driver πέθανε, σταματάμε το batch ---
             try:
-                if not sb.driver.service.is_connectable():
-                    print("    🚨 Driver died! Stopping batch to restart.")
-                    break
-            except:
-                break
+                if not sb.driver.service.is_connectable(): break
+            except: break
 
             print(f"   Processing: {m_url}")
             try:
                 sb.uc_open_with_reconnect(m_url, reconnect_time=4)
                 
                 if "Just a moment" in sb.get_title():
-                    try: sb.uc_gui_click_captcha()
+                    try: sb.uc_gui_click_captcha(); sb.sleep(5)
                     except: pass
-                    sb.sleep(5)
                 
-                # Check popups immediately upon landing
+                # Check popups immediately
                 main_win = sb.driver.current_window_handle
                 handle_popups_smartly(sb, main_win)
 
@@ -288,7 +257,7 @@ def process_batch(links_batch, batch_index, total_batches):
                 watch_url = None
                 label = "Stream"
                 
-                # 1. Search Buttons (Excluding trailers)
+                # 1. Search Buttons (Strict)
                 for a in msoup.find_all('a', href=True):
                     if '/watch/' in a['href']:
                         link_text = a.text.strip().lower()
@@ -297,20 +266,24 @@ def process_batch(links_batch, batch_index, total_batches):
                         watch_url = a['href'] if a['href'].startswith('http') else BASE_URL + a['href']
                         break 
                 
-                # 2. Search Header Button (Stronger Logic)
+                # 2. Search Header Button (Loose - Fix for icons)
                 if not watch_url:
-                    play_btn = msoup.find('a', string=re.compile(r'Δείτε τώρα|Start watching|Play', re.I))
-                    if play_btn and 'href' in play_btn.attrs:
-                        watch_url = play_btn['href'] if play_btn['href'].startswith('http') else BASE_URL + play_btn['href']
-                        # print("     -> Using Header Button")
+                    # Ψάχνουμε οποιοδήποτε link έχει μέσα τις λέξεις, ανεξάρτητα από εικονίδια
+                    for a in msoup.find_all('a', href=True):
+                        txt = a.get_text().lower()
+                        if ('δείτε' in txt or 'start watching' in txt or 'play' in txt) and '/watch/' in a['href']:
+                            watch_url = a['href'] if a['href'].startswith('http') else BASE_URL + a['href']
+                            label = "Header Stream"
+                            break
 
                 # 3. Get Stream
                 if watch_url:
+                    # print(f"     -> Method: {label}")
                     stream_link, sub_link, dynamic_referer = get_stream_and_sub(sb, watch_url)
                 else:
-                    # 4. Fallback Auto-Play (Current Page)
-                    # print("     -> Checking Auto-Play...")
-                    stream_link, sub_link, dynamic_referer = get_stream_and_sub(sb, m_url, is_watch_page=False)
+                    # 4. Fallback Auto-Play
+                    # print("     -> Method: Auto-Play Fallback")
+                    stream_link, sub_link, dynamic_referer = get_stream_and_sub(sb, m_url)
 
                 if stream_link:
                     print(f"     + Found: {stream_link}")
@@ -341,12 +314,11 @@ def main():
         end_idx = start_idx + BATCH_SIZE
         batch_urls = all_movie_urls[start_idx:end_idx]
         
-        # Αν κρασάρει το batch, το script δεν θα σκάσει, απλά θα πάει στο επόμενο
         try:
             results = process_batch(batch_urls, i+1, num_batches)
             total_streams.extend(results)
         except Exception as e:
-            print(f"💥 Critical Batch Error: {e}. Restarting browser...")
+            print(f"💥 Batch Error: {e}")
         
         if i < num_batches - 1:
             time.sleep(3)
