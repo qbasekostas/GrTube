@@ -1,4 +1,4 @@
-name: Update GreekTube Playlist (Playwright)
+name: Update GreekTube Playlist (SB-Sniffer)
 
 on:
   schedule:
@@ -24,28 +24,18 @@ jobs:
       - name: Install System Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y xvfb
+          sudo apt-get install -y xvfb google-chrome-stable
 
-      - name: Install Python dependencies
+      - name: Install Python Dependencies
         run: |
-          pip install playwright beautifulsoup4
-          playwright install firefox
+          pip install seleniumbase beautifulsoup4
+          seleniumbase install chromedriver
 
-      - name: Run Scraper (with Xvfb)
-        # Τρέχουμε με xvfb-run για να δουλέψει το headless=False
-        run: xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" python scraper.py
-
-      - name: Check file existence
-        id: check_file
-        run: |
-          if [ -s "GrTube.m3u" ]; then
-            echo "exists=true" >> $GITHUB_OUTPUT
-          else
-            echo "exists=false" >> $GITHUB_OUTPUT
-          fi
+      - name: Run Scraper
+        # Τρέχουμε με xvfb-run για να έχουμε εικονική οθόνη
+        run: xvfb-run python scraper.py
 
       - name: Commit and Push
-        if: steps.check_file.outputs.exists == 'true'
         run: |
           git config --global user.name "GitHub Action"
           git config --global user.email "action@github.com"
