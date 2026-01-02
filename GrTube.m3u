@@ -1,4 +1,8 @@
 #EXTM3U
+#EXTINF:-1 group-title="Movies",The Shooter (1997)
+#EXTVLCOPT:http-referrer=https://greektube.pro/watch/31657/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://gt1.eyetherapi.top/1080/The.Shooter.1997.1080p.BluRay.x264.AAC-[YTS.MX].mp4
 #EXTINF:-1 group-title="Movies",Kombucha (2025)
 #EXTVLCOPT:http-referrer=https://greektube.pro/watch/31615/
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
@@ -158,7 +162,7 @@ https://gt1.eyetherapi.top/1080/The.Thing.With.Feathers.2025.1080p.WEBRip.x264.A
 #EXTINF:-1 group-title="Movies",Avatar: Φωτιά και Στάχτη / Avatar Fire and Ash (2025)
 #EXTVLCOPT:http-referrer=https://greektube.upns.pro/#mhafoo/
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
-https://smho.lyverra.cyou/v4/urp/mhafoo/index-f1-v1-a1.txt
+https://scvo.lyverra.cyou/v4/urp/mhafoo/index-f1-v1-a1.txt
 #EXTINF:-1 group-title="Movies",Banshee (2006)
 #EXTVLCOPT:http-referrer=https://greektube.pro/watch/30743/
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
@@ -195,6 +199,10 @@ https://gt1.eyetherapi.top/1080/The.Other.Way.Around.2024.1080p.WEBRip.x264.AAC-
 #EXTVLCOPT:http-referrer=https://greektube.pro/watch/30690/
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
 https://gt1.eyetherapi.top/1080/Wolf.Hound.2022.1080p.WEBRip.x264.AAC5.1-[YTS.MX].mp4
+#EXTINF:-1 group-title="Movies",Αντίο - Τζουν / Goodbye June (2025)
+#EXTVLCOPT:http-referrer=https://greektube.pro/watch/31223/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://gt1.eyetherapi.top/1080/Goodbye.June.2025.1080p.WEBRip.x264.AAC5.1-[YTS.LT].mp4
 #EXTINF:-1 group-title="Movies",Clear Cut (2024)
 #EXTVLCOPT:http-referrer=https://greektube.pro/watch/30685/
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
