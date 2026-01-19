@@ -1,4 +1,8 @@
 #EXTM3U
+#EXTINF:-1 group-title="Movies",Journeys End (2017)
+#EXTVLCOPT:http-referrer=https://greektube.pro/watch/32221/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://gt1.eyetherapi.top/1080/Journey's.End.2017.1080p.BluRay.x264-[YTS.AM].mp4
 #EXTINF:-1 group-title="Movies",Το Ζευγάρι της Χρονιάς / America's Sweethearts (2001)
 #EXTVLCOPT:http-referrer=https://greektube.pro/watch/32208/
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
