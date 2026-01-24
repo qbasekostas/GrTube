@@ -1,4 +1,20 @@
 #EXTM3U
+#EXTINF:-1 group-title="Movies",Σκιές στον Ήλιο / Islands (2025)
+#EXTVLCOPT:http-referrer=https://greektube.pro/watch/32340/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://gt1.eyetherapi.top/1080/Islands.2025.DUBBED.1080p.BluRay.x264.AAC5.1-[YTS.MX].mp4
+#EXTINF:-1 group-title="Movies",Distorted (2018)
+#EXTVLCOPT:http-referrer=https://greektube.pro/watch/32338/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://gt1.eyetherapi.top/1080/Distorted.2018.1080p.BluRay.x264-[YTS.AM].mp4
+#EXTINF:-1 group-title="Movies",Όχι Μόνο Φίλοι / Friends with Benefits (2011)
+#EXTVLCOPT:http-referrer=https://greektube.pro/watch/32333/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://gt1.eyetherapi.top/1080/Friends.With.Benefits.2011.1080p.BluRay.x264.AAC5.1-[YTS.MX].mp4
+#EXTINF:-1 group-title="Movies",Danger Close The Battle of Long Tan (2019)
+#EXTVLCOPT:http-referrer=https://greektube.pro/watch/32328/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://gt1.eyetherapi.top/1080/Danger.Close.2019.1080p.BluRay.x264-[YTS.LT].mp4
 #EXTINF:-1 group-title="Movies",Dishing Up Love (2025)
 #EXTVLCOPT:http-referrer=https://greektube.pro/watch/32322/
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
