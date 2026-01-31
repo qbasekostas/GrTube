@@ -1,4 +1,12 @@
 #EXTM3U
+#EXTINF:-1 group-title="Movies",David (2025)
+#EXTVLCOPT:http-referrer=https://greektube.pro/watch/32456/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://gt1.eyetherapi.top/1080/David.2025.1080p.WEBRip.x264.AAC5.1-[YTS.BZ].mp4
+#EXTINF:-1 group-title="Movies",Mother of Flies (2025)
+#EXTVLCOPT:http-referrer=https://greektube.pro/watch/32423/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://gt1.eyetherapi.top/1080/Mother.Of.Flies.2025.1080p.WEBRip.x264.AAC-[YTS.BZ].mp4
 #EXTINF:-1 group-title="Movies",Αγαπημένη / Beloved (1998)
 #EXTVLCOPT:http-referrer=https://greektube.pro/watch/32414/
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
