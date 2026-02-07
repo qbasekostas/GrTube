@@ -1,4 +1,16 @@
 #EXTM3U
+#EXTINF:-1 group-title="Movies",Η Ενσάρκωση του Κακού / Malignant (2021)
+#EXTVLCOPT:http-referrer=https://greektube.pro/watch/32562/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://gt1.eyetherapi.top/1080/Malignant.2021.1080p.BluRay.x264.AAC5.1-[YTS.MX].mp4
+#EXTINF:-1 group-title="Movies",Η Αγγελία / The Housemaid (2025)
+#EXTVLCOPT:http-referrer=https://greektube.pro/watch/32559/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://gt1.eyetherapi.top/1080/The.Housemaid.2025.1080p.WEBRip.x264.AAC5.1-[YTS.BZ].mp4
+#EXTINF:-1 group-title="Movies",Η Απαγορευμένη Πόλη / The Forbidden City (2025)
+#EXTVLCOPT:http-referrer=https://greektube.pro/watch/32554/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://gt1.eyetherapi.top/1080/The.Forbidden.City.2025.1080p.BluRay.x264.AAC5.1-[YTS.BZ].mp4
 #EXTINF:-1 group-title="Movies",Grizzly Night (2026)
 #EXTVLCOPT:http-referrer=https://greektube.pro/watch/32541/
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
@@ -159,6 +171,10 @@ https://gt1.eyetherapi.top/1080/Americas.Sweethearts.2001.1080p.BluRay.x264.AAC5
 #EXTVLCOPT:http-referrer=https://greektube.pro/watch/32193/
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
 https://gt1.eyetherapi.top/1080/Killer.Whale.2026.1080p.WEBRip.x264.AAC5.1-[YTS.BZ].mp4
+#EXTINF:-1 group-title="Movies",Το Σκάφος του Τρόμου / Event Horizon (1997)
+#EXTVLCOPT:http-referrer=https://greektube.pro/watch/32191/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://gt1.eyetherapi.top/1080/Event.Horizon.1997.1080p.BrRip.x264.YIFY.mp4
 #EXTINF:-1 group-title="Movies",Σε Πτώση / On Falling (2025)
 #EXTVLCOPT:http-referrer=https://greektube.pro/watch/32184/
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
@@ -195,10 +211,6 @@ https://eyetherapi.vip/meta/Aladdin.and.His.Wonderful.Lamp.1939.mp4
 #EXTVLCOPT:http-referrer=https://greektube.pro/watch/32055/
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
 https://gt1.eyetherapi.top/1080/Through.My.Window.Looking.At.You.2024.1080p.WEBRip.x264.AAC5.1-[YTS.MX].mp4
-#EXTINF:-1 group-title="Movies",Το Σκάφος του Τρόμου / Event Horizon (1997)
-#EXTVLCOPT:http-referrer=https://greektube.pro/watch/32191/
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
-https://gt1.eyetherapi.top/1080/Event.Horizon.1997.1080p.BrRip.x264.YIFY.mp4
 #EXTINF:-1 group-title="Movies",The Rip (2026)
 #EXTVLCOPT:http-referrer=https://greektube.pro/watch/32036/
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
