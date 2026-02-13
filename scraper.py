@@ -9,7 +9,7 @@ import json
 BASE_URL = "https://greektube.pro"
 START_URLS = [
     "https://greektube.pro/movies?order=created_at%3Adesc",
-    #"https://greektube.pro/movies?order=created_at%3Adesc&page=2"
+    "https://greektube.pro/movies?order=created_at%3Adesc&page=2"
 ]
 OUTPUT_FILE = "GrTube.m3u"
 BATCH_SIZE = 5
@@ -33,22 +33,24 @@ def get_network_video(sb):
                 .filter(n => n.match(/\.(mp4|m3u8|txt)|master/));
         """)
         for url in reversed(logs):
-            if any(ext in url for ext in ['.mp4', '.m3u8', '.txt']) and not any(bad in url for bad in ['google', 'facebook', 'analytics', 'svg', 'jpg']):
+            if any(ext in url for ext in ['.mp4', '.m3u8', '.txt']) and not any(bad in url for bad in ['google', 'facebook', 'analytics', 'svg', 'jpg', 'png']):
                 return url
     except: pass
     return None
 
 def extract_bootstrap_link(soup):
+    """Διαβάζει το JSON από τον κώδικα"""
     try:
         scripts = soup.find_all('script')
         for s in scripts:
             if s.string and 'window.bootstrapData' in s.string:
-                # Regex για src
+                # Προσπαθούμε να βρούμε το src μέσα στο JSON string
                 match = re.search(r'"src"\s*:\s*"([^"]+)"', s.string)
                 if not match: match = re.search(r"'src'\s*:\s*'([^']+)'", s.string)
                 
                 if match:
                     url = match.group(1).replace(r'\/', '/')
+                    # Αν είναι εξωτερικός player
                     if "http" in url and ("upns" in url or "embed" in url or "greektube" in url):
                         return url
     except: pass
@@ -60,17 +62,17 @@ def get_stream_with_devtools(sb, watch_url):
     sub_url = None
 
     try:
+        # 1. Πλοήγηση
         if sb.get_current_url() != watch_url:
             sb.uc_open_with_reconnect(watch_url, reconnect_time=3)
         
         main_win = sb.driver.current_window_handle
         time.sleep(2)
 
-        # 1. Bootstrap Check
+        # 2. Έλεγχος Bootstrap/Iframe
         soup = BeautifulSoup(sb.get_page_source(), 'html.parser')
         target_url = extract_bootstrap_link(soup)
 
-        # 2. Iframe Check
         if not target_url:
             try:
                 iframes = sb.driver.find_elements("css selector", "iframe")
@@ -81,7 +83,7 @@ def get_stream_with_devtools(sb, watch_url):
                         break
             except: pass
 
-        # 3. Go to Player
+        # 3. Μετάβαση στον Player
         if target_url:
             if not target_url.startswith("http"): target_url = BASE_URL + target_url
             if target_url != watch_url:
@@ -89,31 +91,41 @@ def get_stream_with_devtools(sb, watch_url):
                 final_referer = target_url
                 main_win = sb.driver.current_window_handle
 
-        # 4. Click & Sniff
+        # 4. ΚΛΙΚ ΓΙΑ ΞΕΚΛΕΙΔΩΜΑ (Updated for SVG Buttons)
         time.sleep(1)
         close_popups(sb, main_win)
         
-        click_targets = ["video", "#player", ".jw-display-icon", ".play-button", "body", "div[id*='player']"]
+        # Λίστα στόχων κλικ (Προστέθηκαν τα SVG buttons που έστειλες)
+        click_targets = [
+            "button.rounded-full",   # Το κουμπί που έστειλες
+            "a[type='button']",      # Το Link που μοιάζει με κουμπί
+            "svg[data-testid='MediaPlayIcon']", # Το εικονίδιο
+            "video", 
+            "#player", 
+            ".jw-display-icon", 
+            ".play-button", 
+            "body"
+        ]
+        
         for target in click_targets:
             try: 
                 sb.click(target, timeout=0.5)
                 close_popups(sb, main_win)
             except: pass
 
-        time.sleep(4) 
+        time.sleep(4) # Αναμονή για Network Traffic
         
-        # 5. Network Logs
+        # 5. Network Sniffer
         video_url = get_network_video(sb)
 
-        # Fallback Source Regex
+        # Fallback: Source Code Regex
         if not video_url:
             src = sb.get_page_source().replace(r'\/', '/')
-            # ΔΙΟΡΘΩΣΗ: Το Regex επιτρέπει χαρακτήρες url αλλά όχι κενά ή εισαγωγικά
             match = re.search(r'(https?://[^"\'<>\s]+\.(?:mp4|m3u8|txt)(?:[^"\'<>\s]*)?)', src)
             if match and "google" not in match.group(1):
                 video_url = match.group(1)
 
-        # Subs
+        # Subs Regex
         sub_match = re.search(r'(https?://[^"\'<>\s]+\.(?:vtt|srt)(?:[^"\'<>\s]*)?)', sb.get_page_source().replace(r'\/', '/'))
         if sub_match: sub_url = sub_match.group(1)
 
@@ -206,33 +218,45 @@ def process_batch(links):
                 watch_url = None
                 label = "Stream"
                 
-                # 1. Search Buttons
+                # --- NEW BUTTON LOGIC (ICON SUPPORT) ---
+                # Ψάχνουμε για <a> με href που περιέχει /watch/
                 for a in soup.find_all('a', href=True):
                     if '/watch/' in a['href']:
-                        txt = a.text.strip().lower()
-                        if any(x in txt for x in ["trailer", "teaser", "clip"]): continue
-                        watch_url = a['href'] if a['href'].startswith('http') else BASE_URL + a['href']
-                        break 
-                
-                # 2. Header Button
-                if not watch_url:
-                    for a in soup.find_all('a', href=True):
-                        if '/watch/' in a['href'] and ('δείτε' in a.text.lower() or 'play' in a.text.lower()):
-                            watch_url = a['href'] if a['href'].startswith('http') else BASE_URL + a['href']
+                        # Έλεγχος: Είναι trailer;
+                        link_text = a.get_text().strip().lower()
+                        # Αν το κείμενο λέει trailer, το αγνοούμε
+                        if any(x in link_text for x in ["trailer", "teaser"]): continue
+                        
+                        # Αν το λινκ έχει κείμενο (π.χ. "1080p")
+                        if link_text:
+                            label = a.get_text().strip()
+                            watch_url = a['href']
                             break
+                        
+                        # Αν ΔΕΝ έχει κείμενο (είναι εικονίδιο SVG), το παίρνουμε!
+                        # Αυτή είναι η διόρθωση για το κουμπί που μου έστειλες
+                        if not link_text and a.find('svg'):
+                             label = "Icon Stream"
+                             watch_url = a['href']
+                             break
 
+                # Normalize URL
+                if watch_url:
+                     if not watch_url.startswith('http'):
+                         watch_url = BASE_URL + watch_url
+                
+                # Execution
                 target = watch_url if watch_url else url 
                 v, s, r = get_stream_with_devtools(sb, target)
                 
                 if v:
-                    # ΔΙΟΡΘΩΣΗ: Αφαίρεσα το .split("'")[0] που έκοβε τα URLs
-                    # Το URL από το Network Tab είναι ήδη σωστό.
+                    v = v.split('"')[0].split("'")[0]
                     print(f"     + Found: {v}")
                     batch_streams.append({'title': title, 'url': v, 'subtitle': s, 'referer': r})
                 else:
                     print("     - No stream found.")
 
-            except Exception as e: print(f"    Skipped: {e}")
+            except Exception as e: print(f"    Error: {e}")
             
     return batch_streams
 
