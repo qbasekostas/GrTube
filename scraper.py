@@ -25,7 +25,7 @@ def close_popups(sb, main_window):
     except: pass
 
 def get_network_video(sb):
-    """Network Sniffer (DevTools)"""
+    """Network Sniffer"""
     try:
         logs = sb.execute_script("""
             return window.performance.getEntriesByType("resource")
@@ -45,7 +45,6 @@ def extract_bootstrap_link(soup):
             if s.string and 'window.bootstrapData' in s.string:
                 match = re.search(r'"src"\s*:\s*"([^"]+)"', s.string)
                 if not match: match = re.search(r"'src'\s*:\s*'([^']+)'", s.string)
-                
                 if match:
                     url = match.group(1).replace(r'\/', '/')
                     if "http" in url and ("upns" in url or "embed" in url or "greektube" in url):
@@ -59,7 +58,6 @@ def get_stream_with_devtools(sb, watch_url):
     sub_url = None
 
     try:
-        # Αν δεν είμαστε ήδη στη σωστή σελίδα, πήγαινε
         if sb.get_current_url() != watch_url:
             sb.uc_open_with_reconnect(watch_url, reconnect_time=3)
         
@@ -81,7 +79,7 @@ def get_stream_with_devtools(sb, watch_url):
                         break
             except: pass
 
-        # 3. Go to Player (Redirect if needed)
+        # 3. Go to Player
         if target_url:
             if not target_url.startswith("http"): target_url = BASE_URL + target_url
             if target_url != watch_url:
@@ -93,7 +91,18 @@ def get_stream_with_devtools(sb, watch_url):
         time.sleep(1)
         close_popups(sb, main_win)
         
-        click_targets = ["video", "#player", ".jw-display-icon", ".play-button", "body", "div[id*='player']"]
+        # ΕΔΩ ΕΙΝΑΙ Η ΔΙΟΡΘΩΣΗ ΓΙΑ ΤΑ ΚΟΥΜΠΙΑ
+        click_targets = [
+            "button.rounded-full", # Το κουμπί του Big Boys
+            "svg[data-testid='MediaPlayIcon']", 
+            "video", 
+            "#player", 
+            ".jw-display-icon", 
+            ".play-button", 
+            "body", 
+            "div[id*='player']"
+        ]
+        
         for target in click_targets:
             try: 
                 sb.click(target, timeout=0.5)
@@ -101,18 +110,14 @@ def get_stream_with_devtools(sb, watch_url):
             except: pass
 
         time.sleep(4) 
-        
-        # 5. Network Logs
         video_url = get_network_video(sb)
 
-        # Fallback Source Regex
         if not video_url:
             src = sb.get_page_source().replace(r'\/', '/')
             match = re.search(r'(https?://[^"\'<>\s]+\.(?:mp4|m3u8|txt)(?:[^"\'<>\s]*)?)', src)
             if match and "google" not in match.group(1):
                 video_url = match.group(1)
 
-        # Subs
         sub_match = re.search(r'(https?://[^"\'<>\s]+\.(?:vtt|srt)(?:[^"\'<>\s]*)?)', sb.get_page_source().replace(r'\/', '/'))
         if sub_match: sub_url = sub_match.group(1)
 
@@ -159,7 +164,8 @@ def smart_save_m3u(new_streams):
 
 def get_all_movie_urls():
     movie_links = []
-    print("🔵 Phase 1: Collecting URLs...")
+    print("🔵 Phase 1: Collecting URLs (Restored)...")
+    # ΕΠΑΝΑΦΟΡΑ ΣΤΟΝ ΚΩΔΙΚΑ ΠΟΥ ΔΟΥΛΕΥΕ
     with SB(uc=True, test=True, headless=False, xvfb=True, block_images=False) as sb:
         for list_url in START_URLS:
             try:
@@ -167,8 +173,11 @@ def get_all_movie_urls():
                 if "Just a moment" in sb.get_title():
                     sb.uc_gui_click_captcha(); sb.sleep(3)
                 
+                # Scroll
                 sb.execute_script("window.scrollTo(0, document.body.scrollHeight);")
                 sb.sleep(2)
+                
+                # Check explicitly for movies
                 try: sb.wait_for_element_present("a[href*='/titles/']", timeout=15)
                 except: pass
 
@@ -204,7 +213,7 @@ def process_batch(links):
                 watch_url = None
                 label = "Stream"
                 
-                # 1. Search Standard Links (<a>)
+                # 1. Search Buttons (Standard <a> tags)
                 for a in soup.find_all('a', href=True):
                     if '/watch/' in a['href']:
                         txt = a.text.strip().lower()
@@ -212,29 +221,19 @@ def process_batch(links):
                         watch_url = a['href'] if a['href'].startswith('http') else BASE_URL + a['href']
                         break 
                 
-                # 2. Search "Button" Play (Η ΔΙΟΡΘΩΣΗ)
+                # 2. Search Buttons (SVG/Button tags - Big Boys Fix)
                 if not watch_url:
-                    # Ψάχνουμε το SVG εικονίδιο που έστειλες
-                    try:
-                        # CSS Selector για το κουμπί με το συγκεκριμένο εικονίδιο
-                        sb.click("svg[data-testid='MediaPlayIcon']", timeout=1)
-                        
-                        # Περιμένουμε να αλλάξει το URL σε /watch/...
-                        for _ in range(10): # Max 5 seconds wait
-                            curr = sb.get_current_url()
-                            if "/watch/" in curr:
-                                watch_url = curr
-                                # print("     -> Clicked Header Button successfully!")
-                                break
-                            time.sleep(0.5)
-                    except: pass
+                    # Ψάχνουμε links που δεν έχουν κείμενο αλλά έχουν SVG
+                    for a in soup.find_all('a', href=True):
+                        if '/watch/' in a['href'] and a.find('svg'):
+                             watch_url = a['href'] if a['href'].startswith('http') else BASE_URL + a['href']
+                             break
 
-                # 3. Execution
                 target = watch_url if watch_url else url 
                 v, s, r = get_stream_with_devtools(sb, target)
                 
                 if v:
-                    v = v.split('"')[0].split("'")[0]
+                    # v = v.split('"')[0].split("'")[0]  <-- ΑΦΑΙΡΕΘΗΚΕ ΓΙΑ ΤΟ ZOOKEEPER'S WIFE
                     print(f"     + Found: {v}")
                     batch_streams.append({'title': title, 'url': v, 'subtitle': s, 'referer': r})
                 else:
