@@ -1,4 +1,8 @@
 #EXTM3U
+#EXTINF:-1 group-title="Movies",Μπελ: Ο Δράκος και η Πριγκίπισσα (2021)
+#EXTVLCOPT:http-referrer=https://greektube.pro/watch/33181/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://eyetherapi.vip/meta/Belle.2021.1080p.HDTV.x264.DD5.1.mp4
 #EXTINF:-1 group-title="Movies",Η Εσχάτη των Ποινών / Mercy (2026)
 #EXTVLCOPT:http-referrer=https://greektube.pro/watch/33087/
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
