@@ -1,4 +1,12 @@
 #EXTM3U
+#EXTINF:-1 group-title="Movies",War Machine (2026)
+#EXTVLCOPT:http-referrer=https://greektube.pro/watch/33828/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://gt1.eyetherapi.top/1080/War.Machine.2026.1080p.WEBRip.x264.AAC5.1-[YTS.BZ].mp4
+#EXTINF:-1 group-title="Movies",To Σφύριγμα του Θανάτου / Whistle (2026)
+#EXTVLCOPT:http-referrer=https://greektube.pro/watch/33823/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://gt1.eyetherapi.top/1080/Whistle.2025.1080p.WEBRip.x264.AAC5.1-[YTS.BZ].mp4
 #EXTINF:-1 group-title="Movies",Τα Παιδιά της Νύχτας / The Lost Boys (1987)
 #EXTVLCOPT:http-referrer=https://greektube.pro/watch/33813/
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
