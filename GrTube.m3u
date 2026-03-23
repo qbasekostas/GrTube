@@ -1,4 +1,20 @@
 #EXTM3U
+#EXTINF:-1 group-title="Movies",8 Mile (2002)
+#EXTVLCOPT:http-referrer=https://greektube.pro/watch/33311/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://gt1.eyetherapi.top/1080/8.Mile.2002.1080p.BluRay.x264.AAC5.1-[YTS.MX].mp4
+#EXTINF:-1 group-title="Movies",Οι Καταραμένοι / Cursed (2005)
+#EXTVLCOPT:http-referrer=https://greektube.pro/watch/33297/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://gt1.eyetherapi.top/1080/Cursed.2005.1080p.BluRay.x264.AAC5.1-[YTS.MX].mp4
+#EXTINF:-1 group-title="Movies",Venom (2005)
+#EXTVLCOPT:http-referrer=https://greektube.pro/watch/33278/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://gt1.eyetherapi.top/1080/Venom.2005.1080p.BluRay.x264.AAC5.1-[YTS.MX].mp4
+#EXTINF:-1 group-title="Movies",The Addiction (1995)
+#EXTVLCOPT:http-referrer=https://greektube.pro/watch/33273/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://gt1.eyetherapi.top/1080/The.Addiction.1995.1080p.BluRay.x264-[YTS.AM].mp4
 #EXTINF:-1 group-title="Movies",Peaky Blinders: Ο Αθάνατος / Peaky Blinders The Immortal Man (2026)
 #EXTVLCOPT:http-referrer=https://greektube.pro/watch/33198/
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
@@ -183,6 +199,10 @@ https://gt1.eyetherapi.top/1080/Love.Me.Love.Me.2026.1080p.WEBRip.x264.AAC5.1-[Y
 #EXTVLCOPT:http-referrer=https://greektube.pro/watch/32413/
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
 https://gt1.eyetherapi.top/1080/Primate.2025.1080p.WEBRip.x264.AAC5.1-[YTS.BZ].mp4
+#EXTINF:-1 group-title="Movies",Δύο Γυναίκες - Τρεις Βαλίτσες κι Εγώ / Oscar (1991)
+#EXTVLCOPT:http-referrer=https://greektube.pro/watch/33194/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://gt1.eyetherapi.top/1080/Oscar.1991.1080p.BluRay.x264-[YTS.AM].mp4
 #EXTINF:-1 group-title="Movies",Everything Christmas (2023)
 #EXTVLCOPT:http-referrer=https://greektube.pro/watch/32406/
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
