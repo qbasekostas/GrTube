@@ -1,4 +1,8 @@
 #EXTM3U
+#EXTINF:-1 group-title="Movies",Βοήθεια! / Send Help (2026)
+#EXTVLCOPT:http-referrer=https://greektube.pro/watch/33321/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://gt1.eyetherapi.top/1080/Send.Help.2026.1080p.WEBRip.x264.AAC5.1-[YTS.BZ].mp4
 #EXTINF:-1 group-title="Movies",8 Mile (2002)
 #EXTVLCOPT:http-referrer=https://greektube.pro/watch/33311/
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
@@ -195,6 +199,10 @@ https://gt1.eyetherapi.top/1080/Marty.Supreme.2025.1080p.WEBRip.x265.10bit.AAC5.
 #EXTVLCOPT:http-referrer=https://greektube.pro/watch/32482/
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
 https://gt1.eyetherapi.top/1080/Love.Me.Love.Me.2026.1080p.WEBRip.x264.AAC5.1-[YTS.BZ].mp4
+#EXTINF:-1 group-title="Movies",Δύο Γυναίκες - Τρεις Βαλίτσες κι Εγώ / Oscar (1991)
+#EXTVLCOPT:http-referrer=https://greektube.pro/watch/33194/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://gt1.eyetherapi.top/1080/Oscar.1991.1080p.BluRay.x264-[YTS.AM].mp4
 #EXTINF:-1 group-title="Movies",Primate (2026)
 #EXTVLCOPT:http-referrer=https://greektube.pro/watch/32413/
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
