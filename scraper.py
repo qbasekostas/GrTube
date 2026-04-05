@@ -6,10 +6,10 @@ import os
 import math
 import json
 
-BASE_URL = "https://greektube.pro"
+BASE_URL = "https://greeksubsmovies.com"
 START_URLS = [
-    "https://greektube.pro/movies?order=created_at%3Adesc"
-    #"https://greektube.pro/movies?order=created_at%3Adesc&page=2"
+    "https://greeksubsmovies.com/movies?order=created_at%3Adesc"
+    #"https://greeksubsmovies.com/movies?order=created_at%3Adesc&page=2"
 ]
 OUTPUT_FILE = "GrTube.m3u"
 BATCH_SIZE = 5
