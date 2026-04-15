@@ -1,4 +1,16 @@
 #EXTM3U
+#EXTINF:-1 group-title="Movies",Μπαλάκια Πάνω / Balls Up (2026)
+#EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/34247/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://gt1.eyetherapi.top/1080/Balls.Up.2026.MULTI.1080p.WEBRip.x264.AAC5.1-[YTS.BZ].mp4
+#EXTINF:-1 group-title="Movies",undertone (2026)
+#EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/34222/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://gt1.eyetherapi.top/1080/Undertone.2025.1080p.WEBRip.x264.AAC5.1-[YTS.BZ].mp4
+#EXTINF:-1 group-title="Movies",Sky Captain Ο Κόσμος του Αύριο / Sky Captain and the World of Tomorrow (2004)
+#EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/34218/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://gt1.eyetherapi.top/1080/Sky.Captain.and.the.World.of.Tomarrow.2004.1080p.BrRip.x264.YIFY.mp4
 #EXTINF:-1 group-title="Movies",Game Night (2018)
 #EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/34140/
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
