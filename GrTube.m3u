@@ -1,4 +1,8 @@
 #EXTM3U
+#EXTINF:-1 group-title="Movies",Super Mario Galaxy: Η Ταινία / The Super Mario Galaxy Movie (2026)
+#EXTVLCOPT:http-referrer=https://greektube.embed4me.com/#fklzc/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://greektube.embed4me.com/hls/_CsbQu6Ud8empCBWd7B6LQ/is3/dq8zrxeh/ijk8la/tt/index-f1-a1.m3u8?v=1766826492
 #EXTINF:-1 group-title="Movies",Μπαλάκια Πάνω / Balls Up (2026)
 #EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/34247/
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
