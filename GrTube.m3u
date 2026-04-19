@@ -1,4 +1,8 @@
 #EXTM3U
+#EXTINF:-1 group-title="Movies",Ballistic (2026)
+#EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/34287/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://gt1.eyetherapi.top/1080/Ballistic.2025.1080p.WEBRip.x264.AAC5.1-[YTS.BZ].mp4
 #EXTINF:-1 group-title="Movies",Assassins Guild (2024)
 #EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/34274/
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
