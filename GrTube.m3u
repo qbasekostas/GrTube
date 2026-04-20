@@ -1,4 +1,20 @@
 #EXTM3U
+#EXTINF:-1 group-title="Movies",Because of Winn Dixie (2005)
+#EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/34355/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://gt1.eyetherapi.top/1080/Because.Of.Winn-Dixie.2005.1080p.BluRay.x264.AAC5.1-[YTS.MX].mp4
+#EXTINF:-1 group-title="Movies",Η Συμμορία των Φυλακών / Gridiron Gang (2006)
+#EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/34352/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://gt1.eyetherapi.top/1080/Gridiron.Gand.2006.1080p.BrRip.x264.YIFY.mp4
+#EXTINF:-1 group-title="Movies",Wasteman (2026)
+#EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/34349/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://gt1.eyetherapi.top/1080/Wasteman.2025.1080p.WEBRip.x264.AAC5.1-[YTS.BZ].mp4
+#EXTINF:-1 group-title="Movies",180 (2026)
+#EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/34310/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://gt1.eyetherapi.top/1080/180.2026.1080p.WEBRip.x264.AAC5.1-[YTS.BZ].mp4
 #EXTINF:-1 group-title="Movies",Ballistic (2026)
 #EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/34287/
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
