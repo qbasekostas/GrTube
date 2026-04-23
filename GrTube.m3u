@@ -1,4 +1,32 @@
 #EXTM3U
+#EXTINF:-1 group-title="Movies",7 Mummies
+#EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/1565/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://gt1.eyetherapi.top/1080/Resident.Evil.Apocalypse.2004.1080p.BrRip.x264.YIFY.mp4
+#EXTINF:-1 group-title="Movies",Το Μεροκάματο του Φόβου / Sorcerer (1977)
+#EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/34522/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://gt1.eyetherapi.top/1080/Sorcerer.1977.1080p.BluRay.x264.YIFY.mp4
+#EXTINF:-1 group-title="Movies",Terra Formars (2016)
+#EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/34479/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://gt1.eyetherapi.top/1080/Terra.Formars.2016.1080p.BluRay.x264-[YTS.AM].mp4
+#EXTINF:-1 group-title="Movies",Gasoline Alley (2022)
+#EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/34476/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://gt1.eyetherapi.top/1080/Gasoline.Alley.2022.1080p.BluRay.x264.AAC5.1-[YTS.MX].mp4
+#EXTINF:-1 group-title="Movies",Protector (2026)
+#EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/34467/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://gt1.eyetherapi.top/1080/Protector.2025.1080p.WEBRip.x264.AAC5.1-[YTS.BZ].mp4
+#EXTINF:-1 group-title="Movies",Ο Υπόκοσμος της Φιλαδέλφειας / The Sound of Philadelphia (2020)
+#EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/34454/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://gt1.eyetherapi.top/1080/The.Sound.Of.Philadelphia.2020.1080p.BluRay.x264.AAC5.1-[YTS.MX].mp4
+#EXTINF:-1 group-title="Movies",Ανατομία Μιας Πτώσης / Anatomy of a Fall (2023)
+#EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/34446/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://gt1.eyetherapi.top/1080/Anatomy.Of.A.Fall.2023.1080p.BluRay.x264.AAC5.1-[YTS.MX].mp4
 #EXTINF:-1 group-title="Movies",Η Ώρα των Εκτελεστών / Assassins (1995)
 #EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/34434/
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
@@ -78,7 +106,7 @@ https://gt1.eyetherapi.top/1080/The.Highest.Stakes.2026.1080p.WEBRip.x264.AAC5.1
 #EXTINF:-1 group-title="Movies",Super Mario Galaxy: Η Ταινία / The Super Mario Galaxy Movie (2026)
 #EXTVLCOPT:http-referrer=https://greektube.embed4me.com/#fklzc/
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
-https://greektube.embed4me.com/hls/_CsbQu6Ud8empCBWd7B6LQ/is3/dq8zrxeh/ijk8la/tt/index-f2-v1.m3u8?v=1766826492
+https://greektube.embed4me.com/hls/_CsbQu6Ud8empCBWd7B6LQ/is3/dq8zrxeh/ijk8la/tt/index-f1-a1.m3u8?v=1766826492
 #EXTINF:-1 group-title="Movies",Μπαλάκια Πάνω / Balls Up (2026)
 #EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/34247/
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
