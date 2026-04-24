@@ -1,8 +1,36 @@
 #EXTM3U
-#EXTINF:-1 group-title="Movies",7 Mummies
-#EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/1565/
+#EXTINF:-1 group-title="Movies",Ο Λυκάνθρωπος / The Wolfman (2010)
+#EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/34569/
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
-https://gt1.eyetherapi.top/1080/Resident.Evil.Apocalypse.2004.1080p.BrRip.x264.YIFY.mp4
+https://gt1.eyetherapi.top/1080/The.Wolfman.2010.EXTENDED.DC.1080p.BluRay.x264.AAC5.1-[YTS.MX].mp4
+#EXTINF:-1 group-title="Movies",Το Δικό τους Παιχνίδι / A League of Their Own (1992)
+#EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/34562/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://gt1.eyetherapi.top/1080/A.League.Of.Their.Own.1992.1080p.BluRay.x264.AAC5.1-[YTS.MX].mp4
+#EXTINF:-1 group-title="Movies",Μια γειτονιά απίθανη / The Burbs (1989)
+#EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/34549/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://gt1.eyetherapi.top/1080/The.Burbs.1989.1080p.BluRay.x264.YIFY.mp4
+#EXTINF:-1 group-title="Movies",Apex (2026)
+#EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/34542/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://gt1.eyetherapi.top/1080/Apex.2026.1080p.WEBRip.x264.AAC5.1-[YTS.BZ].mp4
+#EXTINF:-1 group-title="Movies",Το Ξαδερφάκι μου Ο Βίνι / My Cousin Vinny (1992)
+#EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/34538/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://gt1.eyetherapi.top/1080/My.Cousin.Vinny.1992.1080p.BluRay.x264-[YTS.AG].mp4
+#EXTINF:-1 group-title="Movies",Επιτέλους - Τι Θα Γίνει με τον Μπομπ; / What About Bob (1991)
+#EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/34531/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://gt1.eyetherapi.top/1080/What.About.Bob..1991.1080p.WEBRip.x264-[YTS.AM].mp4
+#EXTINF:-1 group-title="Movies",Αγάπησα Ένα Ζόμπι / Warm Bodies (2013)
+#EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/34528/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://gt1.eyetherapi.top/1080/Warm.Bodies.2013.1080p.BluRay.x264.YIFY.mp4
+#EXTINF:-1 group-title="Movies",7 Mummies (2006)
+#EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/34525/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://gt1.eyetherapi.top/1080/Seven.Mummies.2006.1080p.WEBRip.x264.AAC-[YTS.MX].mp4
 #EXTINF:-1 group-title="Movies",Το Μεροκάματο του Φόβου / Sorcerer (1977)
 #EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/34522/
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
@@ -171,6 +199,10 @@ https://gt1.eyetherapi.top/1080/Fantastic.Mr.Fox.2009.1080p.BrRip.x264.YIFY.mp4
 #EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/33983/
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
 https://gt1.eyetherapi.top/1080/Moses.1995.1080p.BluRay.x264.AAC5.1-[YTS.MX].mp4
+#EXTINF:-1 group-title="Movies",7 Mummies
+#EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/1565/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://gt1.eyetherapi.top/1080/Resident.Evil.Apocalypse.2004.1080p.BrRip.x264.YIFY.mp4
 #EXTINF:-1 group-title="Movies",Δεν Υπάρχουν Άγιοι / There Are No Saints (2022)
 #EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/33981/
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
