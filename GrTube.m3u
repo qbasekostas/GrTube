@@ -1,4 +1,12 @@
 #EXTM3U
+#EXTINF:-1 group-title="Movies",Four Brothers (2005)
+#EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/34647/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://gt1.eyetherapi.top/1080/Four.Brothers.2005.1080p.BrRip.x264.YIFY.mp4
+#EXTINF:-1 group-title="Movies",Empire State (2013)
+#EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/34644/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://gt1.eyetherapi.top/1080/Empire.State.2013.1080p.BluRay.x264.YIFY.mp4
 #EXTINF:-1 group-title="Movies",Bad Men Must Bleed (2026)
 #EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/34606/
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
@@ -191,6 +199,10 @@ https://gt1.eyetherapi.top/1080/Boy.Erased.2018.1080p.BluRay.x264-[YTS.AM].mp4
 #EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/34049/
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
 https://gt1.eyetherapi.top/1080/Snow.Angels.2007.1080p.WEBRip.x264.AAC5.1-[YTS.MX].mp4
+#EXTINF:-1 group-title="Movies",Επιτέλους - Τι Θα Γίνει με τον Μπομπ; / What About Bob (1991)
+#EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/34531/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://gt1.eyetherapi.top/1080/What.About.Bob..1991.1080p.WEBRip.x264-[YTS.AM].mp4
 #EXTINF:-1 group-title="Movies",Στιγμιαία Οικογένεια / Instant Family (2018)
 #EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/34046/
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
