@@ -1,4 +1,12 @@
 #EXTM3U
+#EXTINF:-1 group-title="Movies",Μέχρι το Τελευταίο Κόκαλο / Bones and All (2022)
+#EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/34673/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://gt1.eyetherapi.top/1080/Bones.And.All.2022.1080p.WEBRip.x264.AAC5.1-[YTS.MX].mp4
+#EXTINF:-1 group-title="Movies",Βατικανό: Απόρρητοι Φάκελοι / The Vatican Tapes (2015)
+#EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/34651/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://gt1.eyetherapi.top/1080/The.Vatican.Tapes.2015.1080p.BluRay.x264.YIFY.mp4
 #EXTINF:-1 group-title="Movies",Four Brothers (2005)
 #EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/34647/
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
@@ -191,6 +199,10 @@ https://gt1.eyetherapi.top/1080/Kiss.And.Cry.2017.1080p.WEBRip.x264.AAC5.1-[YTS.
 #EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/34105/
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
 https://gt1.eyetherapi.top/1080/Rosaline.2022.1080p.WEBRip.x264.AAC5.1-[YTS.MX].mp4
+#EXTINF:-1 group-title="Movies",Επιτέλους - Τι Θα Γίνει με τον Μπομπ; / What About Bob (1991)
+#EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/34531/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://gt1.eyetherapi.top/1080/What.About.Bob..1991.1080p.WEBRip.x264-[YTS.AM].mp4
 #EXTINF:-1 group-title="Movies",Boy Erased (2018)
 #EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/34076/
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
