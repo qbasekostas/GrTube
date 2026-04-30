@@ -3,10 +3,6 @@
 #EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/34673/
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
 https://gt1.eyetherapi.top/1080/Bones.And.All.2022.1080p.WEBRip.x264.AAC5.1-[YTS.MX].mp4
-#EXTINF:-1 group-title="Movies",Βατικανό: Απόρρητοι Φάκελοι / The Vatican Tapes (2015)
-#EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/34651/
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
-https://gt1.eyetherapi.top/1080/The.Vatican.Tapes.2015.1080p.BluRay.x264.YIFY.mp4
 #EXTINF:-1 group-title="Movies",Four Brothers (2005)
 #EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/34647/
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
@@ -19,10 +15,6 @@ https://gt1.eyetherapi.top/1080/Empire.State.2013.1080p.BluRay.x264.YIFY.mp4
 #EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/34606/
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
 https://gt1.eyetherapi.top/1080/Bad.Men.Must.Bleed.2025.1080p.WEBRip.x264.AAC-[YTS.BZ].mp4
-#EXTINF:-1 group-title="Movies",Η Μπαλάντα του Ρίτσαρντ Τζουελ / Richard Jewell (2019)
-#EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/34601/
-#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
-https://gt1.eyetherapi.top/1080/Richard.Jewell.2019.1080p.BluRay.x264.AAC5.1-[YTS.MX].mp4
 #EXTINF:-1 group-title="Movies",Palestine 36 (2025)
 #EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/34593/
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
@@ -199,6 +191,18 @@ https://gt1.eyetherapi.top/1080/Kiss.And.Cry.2017.1080p.WEBRip.x264.AAC5.1-[YTS.
 #EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/34105/
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
 https://gt1.eyetherapi.top/1080/Rosaline.2022.1080p.WEBRip.x264.AAC5.1-[YTS.MX].mp4
+#EXTINF:-1 group-title="Movies",Βατικανό: Απόρρητοι Φάκελοι / The Vatican Tapes (2015)
+#EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/34651/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://gt1.eyetherapi.top/1080/The.Vatican.Tapes.2015.1080p.BluRay.x264.YIFY.mp4
+#EXTINF:-1 group-title="Movies",Η Μπαλάντα του Ρίτσαρντ Τζουελ / Richard Jewell (2019)
+#EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/34601/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://gt1.eyetherapi.top/1080/Richard.Jewell.2019.1080p.BluRay.x264.AAC5.1-[YTS.MX].mp4
+#EXTINF:-1 group-title="Movies",Επιτέλους - Τι Θα Γίνει με τον Μπομπ; / What About Bob (1991)
+#EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/34531/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://gt1.eyetherapi.top/1080/What.About.Bob..1991.1080p.WEBRip.x264-[YTS.AM].mp4
 #EXTINF:-1 group-title="Movies",Επιτέλους - Τι Θα Γίνει με τον Μπομπ; / What About Bob (1991)
 #EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/34531/
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
