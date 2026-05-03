@@ -1,4 +1,8 @@
 #EXTM3U
+#EXTINF:-1 group-title="Movies",A Very Wompkee Christmas (2003)
+#EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/35111/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://eyetherapi.vip/meta/A.Very.Wompkee.Christmas.2003.META%CE%93%CE%9B%CE%A9%CE%A4%CE%99%CE%A3%CE%9C%CE%95%CE%9D%CE%9F.mp4
 #EXTINF:-1 group-title="Movies",Ο άνθρωπος των ρεκόρ / The Worlds Fastest Indian (2005)
 #EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/35077/
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
@@ -195,6 +199,10 @@ https://gt1.eyetherapi.top/1080/Sorcerer.1977.1080p.BluRay.x264.YIFY.mp4
 #EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/34479/
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
 https://gt1.eyetherapi.top/1080/Terra.Formars.2016.1080p.BluRay.x264-[YTS.AM].mp4
+#EXTINF:-1 group-title="Movies",Επιτέλους - Τι Θα Γίνει με τον Μπομπ; / What About Bob (1991)
+#EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/34531/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://gt1.eyetherapi.top/1080/What.About.Bob..1991.1080p.WEBRip.x264-[YTS.AM].mp4
 #EXTINF:-1 group-title="Movies",Gasoline Alley (2022)
 #EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/34476/
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
