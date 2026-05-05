@@ -1,4 +1,29 @@
 #EXTM3U
+#EXTINF:-1 group-title="Movies",Χελωνονιντζάκια / Teenage Mutant Ninja Turtles III (1993)
+#EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/35198/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+#EXTVLCOPT:sub-file=https://greeksubsmovies.com/public/storage/captions/bc0d2b3b-e46d-4ca3-9876-573a1525439e.vtt
+https://gt1.eyetherapi.top/1080/Teenage.Mutant.Ninja.Turtles.III.1993.1080p.BluRay.x264-[YTS.AM].mp4
+#EXTINF:-1 group-title="Movies",Σκυλίσια Μέρα / Dog Day Afternoon (1975)
+#EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/35187/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://gt1.eyetherapi.top/1080/Dog.Day.Afternoon.1975.1080p.BluRay.x264-[YTS.AG].mp4
+#EXTINF:-1 group-title="Movies",Χελωνονιντζάκια / Teenage Mutant Ninja Turtles II: The Secret of the Ooze  (1991)
+#EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/35166/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://gt1.eyetherapi.top/1080/Teenage.Mutant.Ninja.Turtles.II.The.Secret.Of.The.Ooze.1991.1080p.BluRay.x264-[YTS.AM].mp4
+#EXTINF:-1 group-title="Movies",Dirty Dancing Havana Nights (2004)
+#EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/35149/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://gt1.eyetherapi.top/1080/Dirty.Dancing.Havana.Nights.2004.1080p.BrRip.x264.YIFY.mp4
+#EXTINF:-1 group-title="Movies",Χελωνονιντζάκια / Teenage Mutant Ninja Turtles (1990)
+#EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/35146/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://gt1.eyetherapi.top/1080/Teenage.Mutant.Ninja.Turtles.1990.1080p.BluRay.x264-[YTS.AM].mp4
+#EXTINF:-1 group-title="Movies",Χελωνονιντζάκια / TMNT (2007)
+#EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/35125/
+#EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+https://gt1.eyetherapi.top/1080/TMNT.2007.1080p.BluRay.x264.YIFY.mp4
 #EXTINF:-1 group-title="Movies",A Very Wompkee Christmas (2003)
 #EXTVLCOPT:http-referrer=https://greeksubsmovies.com/watch/35111/
 #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
