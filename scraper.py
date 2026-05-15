@@ -8,8 +8,8 @@ import json
 
 BASE_URL = "https://greeksubsmovies.com"
 START_URLS = [
-    "https://greeksubsmovies.com/movies?order=created_at%3Adesc"
-    #"https://greeksubsmovies.com/movies?order=created_at%3Adesc&page=2"
+    "https://greeksubsmovies.com/?sort=recent&filter=movie"
+    #"https://greeksubsmovies.com/?filter=movie&sort=recent&page=2"
 ]
 OUTPUT_FILE = "GrTube.m3u"
 BATCH_SIZE = 5
