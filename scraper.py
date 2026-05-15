@@ -6,10 +6,11 @@ import os
 import math
 import json
 
+# --- ΝΕΑ LINKS ΚΑΙ PLATFORM ---
 BASE_URL = "https://greeksubsmovies.com"
 START_URLS = [
     "https://greeksubsmovies.com/?sort=recent&filter=movie"
-    #"https://greeksubsmovies.com/?filter=movie&sort=recent&page=2"
+    #"https://greeksubsmovies.com/?sort=recent&filter=movie&page=2"
 ]
 OUTPUT_FILE = "GrTube.m3u"
 BATCH_SIZE = 5
@@ -48,7 +49,7 @@ def extract_bootstrap_link(soup):
                 
                 if match:
                     url = match.group(1).replace(r'\/', '/')
-                    if "http" in url and ("upns" in url or "embed" in url or "greektube" in url):
+                    if "http" in url and ("upns" in url or "embed" in url or "greektube" in url or "greeksubs" in url):
                         return url
     except: pass
     return None
@@ -65,11 +66,11 @@ def get_stream_with_devtools(sb, watch_url):
         main_win = sb.driver.current_window_handle
         time.sleep(2)
 
-        # 1. Bootstrap Check (Πρώτη προτεραιότητα - JSON)
+        # 1. Bootstrap Check 
         soup = BeautifulSoup(sb.get_page_source(), 'html.parser')
         target_url = extract_bootstrap_link(soup)
 
-        # 2. Iframe Check (Δεύτερη προτεραιότητα)
+        # 2. Iframe Check 
         if not target_url:
             try:
                 iframes = sb.driver.find_elements("css selector", "iframe")
@@ -80,7 +81,7 @@ def get_stream_with_devtools(sb, watch_url):
                         break
             except: pass
 
-        # 3. Αν βρέθηκε target URL, πάμε εκεί
+        # 3. Go to Player
         if target_url:
             if not target_url.startswith("http"): target_url = BASE_URL + target_url
             if target_url != watch_url:
@@ -89,15 +90,12 @@ def get_stream_with_devtools(sb, watch_url):
                 main_win = sb.driver.current_window_handle
 
         # 4. CLICK & SNIFF
-        # Εδώ γίνεται η δουλειά για τα κουμπιά που δεν είναι links
         time.sleep(1)
         close_popups(sb, main_win)
         
-        # Λίστα στόχων με σειρά προτεραιότητας
-        # Πρώτα το SVG που βρήκες, μετά τα γενικά
         click_targets = [
-            "svg[data-testid='MediaPlayIcon']",  # Το συγκεκριμένο SVG
-            "button:has(svg[data-testid='MediaPlayIcon'])", # Κουμπί που περιέχει το SVG
+            "svg[data-testid='MediaPlayIcon']", 
+            "button:has(svg[data-testid='MediaPlayIcon'])",
             "button.rounded-full",
             "video", 
             "#player", 
@@ -107,32 +105,25 @@ def get_stream_with_devtools(sb, watch_url):
             "body"
         ]
         
-        # Αν έχουμε βρει ήδη target_url (π.χ. upns.pro), κάνουμε λιγότερα κλικ
-        # Αν είμαστε ακόμα στην αρχική σελίδα (δεν βρέθηκε link), δοκιμάζουμε τα πάντα
-        
         for target in click_targets:
             try: 
-                # Αν υπάρχει το στοιχείο, κλικ
                 if sb.is_element_visible(target):
-                    # print(f"      Clicking: {target}")
                     sb.click(target, timeout=0.5)
                     close_popups(sb, main_win)
-                    sb.sleep(0.5) # Μικρή παύση ανάμεσα στα κλικ
+                    sb.sleep(0.5)
             except: pass
 
-        time.sleep(4) # Περιμένουμε να φορτώσει το βίντεο στο δίκτυο
+        time.sleep(4) 
         
         # 5. Network Logs
         video_url = get_network_video(sb)
 
-        # Fallback Source Regex (αν το έγραψε στον κώδικα μετά το κλικ)
         if not video_url:
             src = sb.get_page_source().replace(r'\/', '/')
             match = re.search(r'(https?://[^"\'<>\s]+\.(?:mp4|m3u8|txt)(?:[^"\'<>\s]*)?)', src)
             if match and "google" not in match.group(1):
                 video_url = match.group(1)
 
-        # Subs
         sub_match = re.search(r'(https?://[^"\'<>\s]+\.(?:vtt|srt)(?:[^"\'<>\s]*)?)', sb.get_page_source().replace(r'\/', '/'))
         if sub_match: sub_url = sub_match.group(1)
 
@@ -179,7 +170,7 @@ def smart_save_m3u(new_streams):
 
 def get_all_movie_urls():
     movie_links = []
-    print("🔵 Phase 1: Collecting URLs...")
+    print("🔵 Phase 1: Collecting URLs (New Platform)...")
     with SB(uc=True, test=True, headless=False, xvfb=True, block_images=False) as sb:
         for list_url in START_URLS:
             try:
@@ -189,13 +180,16 @@ def get_all_movie_urls():
                 
                 sb.execute_script("window.scrollTo(0, document.body.scrollHeight);")
                 sb.sleep(2)
-                try: sb.wait_for_element_present("a[href*='/titles/']", timeout=15)
+                
+                # --- NEW PLATFORM SELECTOR ---
+                try: sb.wait_for_element_present("a[href*='/title.php?id=']", timeout=15)
                 except: pass
 
                 soup = BeautifulSoup(sb.get_page_source(), 'html.parser')
                 for a in soup.find_all('a', href=True):
                     href = a['href']
-                    if '/titles/' in href and 'page=' not in href:
+                    # --- NEW PLATFORM URL MATCH ---
+                    if '/title.php?id=' in href:
                         full_link = href if href.startswith('http') else BASE_URL + href
                         if full_link not in movie_links: movie_links.append(full_link)
             except: pass
@@ -217,36 +211,52 @@ def process_batch(links):
                 close_popups(sb, handle_window)
 
                 soup = BeautifulSoup(sb.get_page_source(), 'html.parser')
+                
+                # Title parsing (Fallback for new platform)
                 title_tag = soup.find('h1')
-                if not title_tag: continue
-                title = title_tag.text.strip()
+                title = title_tag.text.strip() if title_tag else ""
+                if not title and soup.title:
+                    title = soup.title.text.strip().replace(" - GreekSubsMovies", "").strip()
+                if not title: title = "Unknown Title"
                 
                 watch_url = None
                 label = "Stream"
                 
-                # 1. Search Buttons (Standard <a> with /watch/)
+                # 1. Search Buttons (New Platform Format: /watch.php?)
                 for a in soup.find_all('a', href=True):
-                    if '/watch/' in a['href']:
+                    if '/watch.php?' in a['href']:
                         txt = a.text.strip().lower()
                         if any(x in txt for x in ["trailer", "teaser", "clip"]): continue
+                        
                         watch_url = a['href'] if a['href'].startswith('http') else BASE_URL + a['href']
+                        
+                        # Έξυπνη εύρεση ποιότητας (π.χ. 1080p) από το parent element
+                        parent = a.find_parent(class_=['video-row', 'feature-card'])
+                        if parent:
+                            strong_tag = parent.find('strong')
+                            if strong_tag:
+                                label = strong_tag.text.strip()
+                        
+                        # Αν δε βρήκε 'strong', παίρνει το κείμενο του κουμπιού
+                        if label == "Stream":
+                             label = a.text.strip().replace("▶", "").strip() or "Stream"
+                        
                         break 
                 
-                # 2. Search Buttons (SVG inside <a>)
+                # 2. Search Buttons (SVG inside <a>) - Fallback
                 if not watch_url:
                     for a in soup.find_all('a', href=True):
-                        if '/watch/' in a['href'] and a.find('svg'):
+                        if '/watch.php?' in a['href'] and a.find('svg'):
                              watch_url = a['href'] if a['href'].startswith('http') else BASE_URL + a['href']
                              break
 
                 # 3. Execution
-                # Αν βρέθηκε watch_url, πάμε εκεί. Αν όχι, μένουμε στο url (για να ψάξουμε το button με το SVG)
                 target = watch_url if watch_url else url 
                 
                 v, s, r = get_stream_with_devtools(sb, target)
                 
                 if v:
-                    print(f"     + Found: {v}")
+                    print(f"     + Found [{label}]: {v}")
                     batch_streams.append({'title': title, 'url': v, 'subtitle': s, 'referer': r})
                 else:
                     print("     - No stream found.")
