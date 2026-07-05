@@ -9,8 +9,8 @@ import json
 # --- ΝΕΑ LINKS ΚΑΙ PLATFORM ---
 BASE_URL = "https://greeksubsmovies.com"
 START_URLS = [
-    "https://greeksubsmovies.com/?sort=recent&filter=movie"
-    #"https://greeksubsmovies.com/?sort=recent&filter=movie&page=2"
+    "https://greeksubsmovies.net/?sort=recent&filter=movie"
+    #"https://greeksubsmovies.net/?sort=recent&filter=movie&page=2"
 ]
 OUTPUT_FILE = "GrTube.m3u"
 BATCH_SIZE = 5
