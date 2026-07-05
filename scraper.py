@@ -7,7 +7,7 @@ import math
 import json
 
 # --- ΝΕΑ LINKS ΚΑΙ PLATFORM ---
-BASE_URL = "https://greeksubsmovies.com"
+BASE_URL = "https://greeksubsmovies.net"
 START_URLS = [
     "https://greeksubsmovies.net/?sort=recent&filter=movie"
     #"https://greeksubsmovies.net/?sort=recent&filter=movie&page=2"
