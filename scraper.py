@@ -6,10 +6,11 @@ import os
 import math
 import json
 
+# --- UPDATE DOMAIN & NEW URLS ---
 BASE_URL = "https://greeksubsmovies.net"
 START_URLS = [
-    "https://greeksubsmovies.net/?sort=recent&filter=movie"
-    #"https://greeksubsmovies.net/?sort=recent&filter=movie&page=2"
+    "https://greeksubsmovies.net/tainies"
+    #"https://greeksubsmovies.net/tainies?page=2"
 ]
 OUTPUT_FILE = "GrTube.m3u"
 BATCH_SIZE = 5
@@ -25,6 +26,7 @@ def close_popups(sb, main_window):
     except: pass
 
 def get_network_video(sb):
+    """Network Sniffer (DevTools)"""
     try:
         logs = sb.execute_script("""
             return window.performance.getEntriesByType("resource")
@@ -49,7 +51,7 @@ def get_stream_with_devtools(sb, watch_url):
         main_win = sb.driver.current_window_handle
         time.sleep(2)
         
-        # --- OVERLAY KILLER (Phase 2) ---
+        # --- OVERLAY KILLER ---
         try:
             sb.execute_script("""
                 document.querySelectorAll('#gsm-adblock-overlay, #gsm-vpn-overlay, #gsm-combined-overlay').forEach(e => e.remove());
@@ -181,7 +183,7 @@ def smart_save_m3u(new_streams):
 
 def get_all_movie_urls():
     movie_links = []
-    print("🔵 Phase 1: Collecting URLs (With Overlay Killer)...")
+    print("🔵 Phase 1: Collecting URLs (SEO URLs version)...")
     with SB(uc=True, test=True, headless=False, xvfb=True, block_images=False) as sb:
         for list_url in START_URLS:
             print(f"   -> Loading: {list_url}")
@@ -189,7 +191,7 @@ def get_all_movie_urls():
                 sb.uc_open_with_reconnect(list_url, reconnect_time=5)
                 sb.sleep(3)
                 
-                # --- OVERLAY KILLER ΣΤΗ ΦΑΣΗ 1 (Η ΛΥΣΗ ΓΙΑ ΤΟ VPN BLOCK) ---
+                # --- OVERLAY KILLER ---
                 try:
                     sb.execute_script("""
                         document.querySelectorAll('#gsm-adblock-overlay, #gsm-vpn-overlay, #gsm-combined-overlay').forEach(e => e.remove());
@@ -199,13 +201,8 @@ def get_all_movie_urls():
                         document.documentElement.style.overflow = 'auto';
                     """)
                 except: pass
-                # -----------------------------------------------------------
                 
-                page_title = sb.get_title()
-                print(f"      Page Title: {page_title}")
-                
-                if "Just a moment" in page_title or "Attention Required" in page_title:
-                    print("      ⚠️ Cloudflare wall hit! Attempting click bypass...")
+                if "Just a moment" in sb.get_title() or "Attention Required" in sb.get_title():
                     try: sb.uc_gui_click_captcha(); sb.sleep(5)
                     except: pass
                 
@@ -214,20 +211,18 @@ def get_all_movie_urls():
                 
                 soup = BeautifulSoup(sb.get_page_source(), 'html.parser')
                 found_on_page = 0
-                for a in soup.find_all('a', href=True):
+                
+                # --- ΝΕΟ REGEX ΓΙΑ ΤΙΣ ΤΑΙΝΙΕΣ (a.card) ---
+                for a in soup.find_all('a', class_='card', href=True):
                     href = a['href']
-                    if '/title.php?id=' in href:
+                    # Ανιχνεύει τα νέα URLs (/tainia/..., /seira/..., /title.php...)
+                    if '/tainia/' in href or '/seira/' in href or '/title' in href:
                         full_link = href if href.startswith('http') else BASE_URL + href
                         if full_link not in movie_links: 
                             movie_links.append(full_link)
                             found_on_page += 1
                             
                 print(f"      Links found here: {found_on_page}")
-                
-                if found_on_page == 0:
-                    screenshot_name = f"error_phase1_page_{START_URLS.index(list_url)}.png"
-                    sb.save_screenshot(screenshot_name)
-                    print(f"      📸 Took screenshot: {screenshot_name}")
                 
             except Exception as e: 
                 print(f"      Error: {e}")
@@ -266,8 +261,9 @@ def process_batch(links):
                 watch_url = None
                 label = "Stream"
                 
+                # --- ΝΕΟ REGEX ΓΙΑ ΤΟ ΚΟΥΜΠΙ WATCH ---
                 for a in soup.find_all('a', href=True):
-                    if '/watch.php?' in a['href']:
+                    if '/watch/' in a['href'] or '/watch.php' in a['href']:
                         txt = a.text.strip().lower()
                         if any(x in txt for x in ["trailer", "teaser", "clip"]): continue
                         
