@@ -6,7 +6,6 @@ import os
 import math
 import json
 
-# --- UPDATE DOMAIN ---
 BASE_URL = "https://greeksubsmovies.net"
 START_URLS = [
     "https://greeksubsmovies.net/?sort=recent&filter=movie"
@@ -26,7 +25,6 @@ def close_popups(sb, main_window):
     except: pass
 
 def get_network_video(sb):
-    """Network Sniffer (DevTools)"""
     try:
         logs = sb.execute_script("""
             return window.performance.getEntriesByType("resource")
@@ -51,7 +49,7 @@ def get_stream_with_devtools(sb, watch_url):
         main_win = sb.driver.current_window_handle
         time.sleep(2)
         
-        # --- OVERLAY KILLER (Διαγραφή VPN/Adblock μπλοκ) ---
+        # Kill VPN Overlay
         try:
             sb.execute_script("""
                 document.querySelectorAll('#gsm-adblock-overlay, #gsm-vpn-overlay, #gsm-combined-overlay').forEach(e => e.remove());
@@ -64,13 +62,13 @@ def get_stream_with_devtools(sb, watch_url):
 
         source = sb.get_page_source()
 
-        # --- 1. ΥΠΟΤΙΤΛΟΙ ---
+        # 1. Subs
         sub_match = re.search(r'<track[^>]*src=["\']([^"\']+\.(?:vtt|srt))["\']', source)
         if sub_match:
             sub_url = sub_match.group(1)
             if sub_url.startswith('/'): sub_url = BASE_URL + sub_url
 
-        # --- 2. API CRACKER (Η Βασική Διόρθωση) ---
+        # 2. API Cracker
         target_url = None
         tok_match = re.search(r'const _tok\s*=\s*["\']([^"\']+)["\']', source)
         vid_match = re.search(r'const _vid\s*=\s*(\d+)', source)
@@ -78,9 +76,7 @@ def get_stream_with_devtools(sb, watch_url):
         if tok_match and vid_match:
             tok = tok_match.group(1)
             vid = vid_match.group(1)
-            
             try:
-                # Περιμένουμε το JS Fetch να τελειώσει (async)
                 sb.driver.set_script_timeout(10)
                 data = sb.driver.execute_async_script(f"""
                     var callback = arguments[arguments.length - 1];
@@ -89,16 +85,10 @@ def get_stream_with_devtools(sb, watch_url):
                         .then(data => callback(data))
                         .catch(error => callback(null));
                 """)
-                
-                if data and 'src' in data and data['src']:
-                    target_url = data['src']
-                    # print(f"    [API OK] Got URL: {target_url}")
-                elif data and 'error' in data:
-                    print(f"    [API Blocked] Server says: {data['error']}")
-            except Exception as api_err:
-                pass # Αγνόησε το error, θα πάμε στα fallbacks
+                if data and 'src' in data and data['src']: target_url = data['src']
+            except: pass
 
-        # --- 3. Iframe Fallback ---
+        # 3. Iframe
         if not target_url:
             try:
                 iframes = sb.driver.find_elements("css selector", "iframe")
@@ -109,14 +99,12 @@ def get_stream_with_devtools(sb, watch_url):
                         break
             except: pass
 
-        if not target_url:
-            return None, sub_url, final_referer
+        if not target_url: return None, sub_url, final_referer
 
-        # Αν το API μας έδωσε κατευθείαν .mp4 (δεν χρειάζεται sniffing)
         if re.search(r'\.(mp4|m3u8|txt)(?:[^\w]|$)', target_url):
             return target_url, sub_url, final_referer
 
-        # --- 4. Πάμε στον Player (upns.pro κλπ) για Sniffing ---
+        # 4. Player Network Sniff
         if not target_url.startswith("http"): target_url = BASE_URL + target_url
         if target_url != watch_url:
             sb.uc_open_with_reconnect(target_url, reconnect_time=3)
@@ -130,12 +118,8 @@ def get_stream_with_devtools(sb, watch_url):
             "svg[data-testid='MediaPlayIcon']", 
             "button:has(svg[data-testid='MediaPlayIcon'])",
             "button.rounded-full",
-            "video", 
-            "#player", 
-            ".jw-display-icon", 
-            ".play-button",
-            "div[id*='player']",
-            "body"
+            "video", "#player", ".jw-display-icon", ".play-button",
+            "div[id*='player']", "body"
         ]
         
         for target in click_targets:
@@ -149,7 +133,6 @@ def get_stream_with_devtools(sb, watch_url):
         time.sleep(4) 
         video_url = get_network_video(sb)
 
-        # Fallback Regex
         if not video_url:
             src = sb.get_page_source().replace(r'\/', '/')
             match = re.search(r'(https?://[^"\'<>\s]+\.(?:mp4|m3u8|txt)(?:[^"\'<>\s]*)?)', src)
@@ -178,7 +161,6 @@ def smart_save_m3u(new_streams):
                 elif line.startswith("#EXTVLCOPT") or line.startswith("http"):
                     if current_entry: current_entry['raw_lines'].append(line)
             if current_entry: old_entries.append(current_entry)
-            print(f"📂 Loaded {len(old_entries)} existing movies.")
         except: pass
 
     new_titles = [s['title'] for s in new_streams]
@@ -199,28 +181,48 @@ def smart_save_m3u(new_streams):
 
 def get_all_movie_urls():
     movie_links = []
-    print("🔵 Phase 1: Collecting URLs (.net API version)...")
+    print("🔵 Phase 1: Collecting URLs (Detective Mode)...")
     with SB(uc=True, test=True, headless=False, xvfb=True, block_images=False) as sb:
         for list_url in START_URLS:
+            print(f"   -> Loading: {list_url}")
             try:
                 sb.uc_open_with_reconnect(list_url, reconnect_time=5)
-                if "Just a moment" in sb.get_title():
-                    sb.uc_gui_click_captcha(); sb.sleep(3)
+                sb.sleep(3)
+                
+                page_title = sb.get_title()
+                print(f"      Page Title: {page_title}")
+                
+                if "Just a moment" in page_title or "Attention Required" in page_title:
+                    print("      ⚠️ Cloudflare wall hit! Attempting click bypass...")
+                    try: sb.uc_gui_click_captcha(); sb.sleep(5)
+                    except: pass
+                    print(f"      Page Title after bypass: {sb.get_title()}")
                 
                 sb.execute_script("window.scrollTo(0, document.body.scrollHeight);")
                 sb.sleep(2)
                 
-                try: sb.wait_for_element_present("a[href*='/title.php?id=']", timeout=15)
-                except: pass
-
                 soup = BeautifulSoup(sb.get_page_source(), 'html.parser')
+                found_on_page = 0
                 for a in soup.find_all('a', href=True):
                     href = a['href']
                     if '/title.php?id=' in href:
                         full_link = href if href.startswith('http') else BASE_URL + href
-                        if full_link not in movie_links: movie_links.append(full_link)
-            except: pass
-    print(f"🟢 Found {len(movie_links)} movies.")
+                        if full_link not in movie_links: 
+                            movie_links.append(full_link)
+                            found_on_page += 1
+                            
+                print(f"      Links found here: {found_on_page}")
+                
+                # Αν δεν βρήκε τίποτα, βγάζουμε Φωτογραφία!
+                if found_on_page == 0:
+                    screenshot_name = f"error_phase1_page_{START_URLS.index(list_url)}.png"
+                    sb.save_screenshot(screenshot_name)
+                    print(f"      📸 Took screenshot: {screenshot_name}")
+                
+            except Exception as e: 
+                print(f"      Error: {e}")
+                
+    print(f"🟢 Total Found: {len(movie_links)} movies.")
     return movie_links
 
 def process_batch(links):
@@ -242,11 +244,9 @@ def process_batch(links):
 
                 soup = BeautifulSoup(sb.get_page_source(), 'html.parser')
                 
-                # Title Extraction 
                 title = "Unknown"
                 for div in soup.find_all('div', class_='card-title'):
-                    title = div.text.strip()
-                    break
+                    title = div.text.strip(); break
                 if title == "Unknown":
                     h1 = soup.find('h1')
                     if h1: title = h1.text.strip()
@@ -260,15 +260,12 @@ def process_batch(links):
                     if '/watch.php?' in a['href']:
                         txt = a.text.strip().lower()
                         if any(x in txt for x in ["trailer", "teaser", "clip"]): continue
-                        
                         watch_url = a['href'] if a['href'].startswith('http') else BASE_URL + a['href']
-                        
                         parent = a.find_parent(class_=['video-row', 'feature-card'])
                         if parent:
                             strong = parent.find('strong')
                             if strong: label = strong.text.strip()
                         if label == "Stream": label = txt.replace("▶", "").strip() or "Stream"
-                        
                         break 
                 
                 target = watch_url if watch_url else url 
@@ -280,7 +277,7 @@ def process_batch(links):
                 else:
                     print("     - No stream found.")
 
-            except Exception as e: print(f"    Skipped (Timeout/Error): {e}")
+            except Exception as e: print(f"    Skipped: {e}")
             
     return batch_streams
 
