@@ -49,7 +49,7 @@ def get_stream_with_devtools(sb, watch_url):
         main_win = sb.driver.current_window_handle
         time.sleep(2)
         
-        # Kill VPN Overlay
+        # --- OVERLAY KILLER (Phase 2) ---
         try:
             sb.execute_script("""
                 document.querySelectorAll('#gsm-adblock-overlay, #gsm-vpn-overlay, #gsm-combined-overlay').forEach(e => e.remove());
@@ -104,7 +104,7 @@ def get_stream_with_devtools(sb, watch_url):
         if re.search(r'\.(mp4|m3u8|txt)(?:[^\w]|$)', target_url):
             return target_url, sub_url, final_referer
 
-        # 4. Player Network Sniff
+        # 4. Player Net Sniff
         if not target_url.startswith("http"): target_url = BASE_URL + target_url
         if target_url != watch_url:
             sb.uc_open_with_reconnect(target_url, reconnect_time=3)
@@ -181,13 +181,25 @@ def smart_save_m3u(new_streams):
 
 def get_all_movie_urls():
     movie_links = []
-    print("🔵 Phase 1: Collecting URLs (Detective Mode)...")
+    print("🔵 Phase 1: Collecting URLs (With Overlay Killer)...")
     with SB(uc=True, test=True, headless=False, xvfb=True, block_images=False) as sb:
         for list_url in START_URLS:
             print(f"   -> Loading: {list_url}")
             try:
                 sb.uc_open_with_reconnect(list_url, reconnect_time=5)
                 sb.sleep(3)
+                
+                # --- OVERLAY KILLER ΣΤΗ ΦΑΣΗ 1 (Η ΛΥΣΗ ΓΙΑ ΤΟ VPN BLOCK) ---
+                try:
+                    sb.execute_script("""
+                        document.querySelectorAll('#gsm-adblock-overlay, #gsm-vpn-overlay, #gsm-combined-overlay').forEach(e => e.remove());
+                        document.documentElement.classList.remove('gsm-access-locked', 'gsm-adblock-locked');
+                        document.body.classList.remove('gsm-access-locked', 'gsm-adblock-locked');
+                        document.body.style.overflow = 'auto';
+                        document.documentElement.style.overflow = 'auto';
+                    """)
+                except: pass
+                # -----------------------------------------------------------
                 
                 page_title = sb.get_title()
                 print(f"      Page Title: {page_title}")
@@ -196,7 +208,6 @@ def get_all_movie_urls():
                     print("      ⚠️ Cloudflare wall hit! Attempting click bypass...")
                     try: sb.uc_gui_click_captcha(); sb.sleep(5)
                     except: pass
-                    print(f"      Page Title after bypass: {sb.get_title()}")
                 
                 sb.execute_script("window.scrollTo(0, document.body.scrollHeight);")
                 sb.sleep(2)
@@ -213,7 +224,6 @@ def get_all_movie_urls():
                             
                 print(f"      Links found here: {found_on_page}")
                 
-                # Αν δεν βρήκε τίποτα, βγάζουμε Φωτογραφία!
                 if found_on_page == 0:
                     screenshot_name = f"error_phase1_page_{START_URLS.index(list_url)}.png"
                     sb.save_screenshot(screenshot_name)
@@ -260,6 +270,7 @@ def process_batch(links):
                     if '/watch.php?' in a['href']:
                         txt = a.text.strip().lower()
                         if any(x in txt for x in ["trailer", "teaser", "clip"]): continue
+                        
                         watch_url = a['href'] if a['href'].startswith('http') else BASE_URL + a['href']
                         parent = a.find_parent(class_=['video-row', 'feature-card'])
                         if parent:
@@ -277,7 +288,7 @@ def process_batch(links):
                 else:
                     print("     - No stream found.")
 
-            except Exception as e: print(f"    Skipped: {e}")
+            except Exception as e: print(f"    Skipped (Timeout/Error): {e}")
             
     return batch_streams
 
