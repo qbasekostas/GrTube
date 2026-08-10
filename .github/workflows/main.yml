@@ -1,10 +1,10 @@
-name: Update GreekTube Playlist (SB-Sniffer)
+name: Update GreekTube Playlist (Network Sniffer)
 
 on:
   schedule:
-    - cron: '0 17 * * *'
+    - cron: '0 17 * * *' # 17:00 UTC = 19:00/20:00 GR
   workflow_dispatch:
-
+  
 jobs:
   scrape:
     runs-on: ubuntu-latest
@@ -14,35 +14,31 @@ jobs:
       
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.10'
 
+      # 1. Εγκατάσταση απαραίτητων εργαλείων συστήματος (Chrome & Xvfb για εικονική οθόνη)
       - name: Install System Dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y xvfb google-chrome-stable
 
+      # 2. Εγκατάσταση Python βιβλιοθηκών
       - name: Install Python Dependencies
         run: |
           pip install seleniumbase beautifulsoup4
+          # Κατεβάζουμε τον κατάλληλο driver για τον Chrome
           seleniumbase install chromedriver
 
+      # 3. Εκτέλεση του Scraper μέσα σε εικονική οθόνη
       - name: Run Scraper
         run: xvfb-run python scraper.py
 
-      # --- ΝΕΟ: Ανεβάζει το Screenshot αν αποτύχει η Φάση 1 ---
-      - name: Upload Debug Screenshot
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: debug-screenshots
-          path: "*.png"
-          if-no-files-found: ignore
-
+      # 4. Commit & Push (Μόνο αν υπάρχει το αρχείο και δεν είναι άδειο)
       - name: Commit and Push
         run: |
           git config --global user.name "GitHub Action"
