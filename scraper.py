@@ -26,6 +26,7 @@ def close_popups(sb, main_window):
     except: pass
 
 def get_network_video(sb):
+    """Network Sniffer (DevTools)"""
     try:
         logs = sb.execute_script("""
             return window.performance.getEntriesByType("resource")
@@ -35,6 +36,21 @@ def get_network_video(sb):
         for url in reversed(logs):
             if any(ext in url for ext in ['.mp4', '.m3u8', '.txt']) and not any(bad in url for bad in ['google', 'facebook', 'analytics', 'svg', 'jpg', 'png']):
                 return url
+    except: pass
+    return None
+
+def extract_bootstrap_link(soup):
+    try:
+        scripts = soup.find_all('script')
+        for s in scripts:
+            if s.string and 'window.bootstrapData' in s.string:
+                match = re.search(r'"src"\s*:\s*"([^"]+)"', s.string)
+                if not match: match = re.search(r"'src'\s*:\s*'([^']+)'", s.string)
+                
+                if match:
+                    url = match.group(1).replace(r'\/', '/')
+                    if "http" in url and ("upns" in url or "embed" in url or "greektube" in url or "greeksubs" in url):
+                        return url
     except: pass
     return None
 
@@ -158,6 +174,7 @@ def smart_save_m3u(new_streams):
                 if line.startswith("#EXTINF"):
                     if current_entry: old_entries.append(current_entry)
                     raw_title = line.split(",", 1)[1] if "," in line else "Unknown"
+                    # Σβήνει το [1080p] από τα παλιά για να μην διπλοεγγράφονται
                     clean_old_title = re.sub(r'\s*\[.*?\]\s*$', '', raw_title).strip()
                     current_entry = {'title': clean_old_title, 'raw_lines': [line]}
                 elif line.startswith("#EXTVLCOPT") or line.startswith("http"):
@@ -183,10 +200,9 @@ def smart_save_m3u(new_streams):
 
 def get_all_movie_urls():
     movie_links = []
-    print("🔵 Phase 1: Collecting URLs (With Overlay Killer)...")
+    print("🔵 Phase 1: Collecting URLs...")
     with SB(uc=True, test=True, headless=False, xvfb=True, block_images=False) as sb:
         for list_url in START_URLS:
-            print(f"   -> Loading: {list_url}")
             try:
                 sb.uc_open_with_reconnect(list_url, reconnect_time=5)
                 sb.sleep(3)
@@ -210,15 +226,18 @@ def get_all_movie_urls():
                 sb.execute_script("window.scrollTo(0, document.body.scrollHeight);")
                 sb.sleep(2)
                 
+                # ΕΔΩ ΗΤΑΝ ΤΟ ΛΑΘΟΣ (Είχα αφήσει /titles/ αντί για /title.php)
+                try: sb.wait_for_element_present("a[href*='/title.php']", timeout=15)
+                except: pass
+
                 soup = BeautifulSoup(sb.get_page_source(), 'html.parser')
-                found_on_page = 0
                 for a in soup.find_all('a', href=True):
                     href = a['href']
-                    if '/title.php?id=' in href:
+                    # ΕΔΩ επίσης το έφτιαξα για το νέο site format
+                    if '/title.php' in href or '/tainia/' in href or '/seira/' in href:
                         full_link = href if href.startswith('http') else BASE_URL + href
                         if full_link not in movie_links: 
                             movie_links.append(full_link)
-                            found_on_page += 1
                             
             except Exception as e: 
                 print(f"      Error: {e}")
@@ -257,8 +276,9 @@ def process_batch(links):
                 watch_url = None
                 label = "Stream"
                 
+                # Το ίδιο εδώ για το /watch.php
                 for a in soup.find_all('a', href=True):
-                    if '/watch.php?' in a['href']:
+                    if '/watch.php' in a['href'] or '/watch/' in a['href']:
                         txt = a.text.strip().lower()
                         if any(x in txt for x in ["trailer", "teaser", "clip"]): continue
                         
