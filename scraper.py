@@ -6,7 +6,7 @@ import os
 import math
 import json
 
-# --- NEW DOMAIN & URLS ---
+# --- UPDATE DOMAIN ---
 BASE_URL = "https://greeksubsmovies.net"
 START_URLS = [
     "https://greeksubsmovies.net/?sort=recent&filter=movie"
@@ -51,16 +51,26 @@ def get_stream_with_devtools(sb, watch_url):
         main_win = sb.driver.current_window_handle
         time.sleep(2)
         
+        # --- OVERLAY KILLER (Διαγραφή VPN/Adblock μπλοκ) ---
+        try:
+            sb.execute_script("""
+                document.querySelectorAll('#gsm-adblock-overlay, #gsm-vpn-overlay, #gsm-combined-overlay').forEach(e => e.remove());
+                document.documentElement.classList.remove('gsm-access-locked', 'gsm-adblock-locked');
+                document.body.classList.remove('gsm-access-locked', 'gsm-adblock-locked');
+                document.body.style.overflow = 'auto';
+                document.documentElement.style.overflow = 'auto';
+            """)
+        except: pass
+
         source = sb.get_page_source()
 
         # --- 1. ΥΠΟΤΙΤΛΟΙ ---
-        # Τώρα τους παίρνουμε κατευθείαν από το tag <track>
         sub_match = re.search(r'<track[^>]*src=["\']([^"\']+\.(?:vtt|srt))["\']', source)
         if sub_match:
             sub_url = sub_match.group(1)
             if sub_url.startswith('/'): sub_url = BASE_URL + sub_url
 
-        # --- 2. API CRACKER (Το νέο κόλπο) ---
+        # --- 2. API CRACKER (Η Βασική Διόρθωση) ---
         target_url = None
         tok_match = re.search(r'const _tok\s*=\s*["\']([^"\']+)["\']', source)
         vid_match = re.search(r'const _vid\s*=\s*(\d+)', source)
@@ -68,18 +78,25 @@ def get_stream_with_devtools(sb, watch_url):
         if tok_match and vid_match:
             tok = tok_match.group(1)
             vid = vid_match.group(1)
-            api_url = f"{BASE_URL}/api/video-src.php?t={tok}&v={vid}"
             
-            # Κάνουμε fetch το API σαν να ήμασταν το site
             try:
-                json_str = sb.execute_script(f"return fetch('{api_url}').then(r => r.text());")
-                data = json.loads(json_str)
-                if data and 'src' in data:
+                # Περιμένουμε το JS Fetch να τελειώσει (async)
+                sb.driver.set_script_timeout(10)
+                data = sb.driver.execute_async_script(f"""
+                    var callback = arguments[arguments.length - 1];
+                    fetch('/api/video-src.php?t=' + encodeURIComponent('{tok}') + '&v={vid}')
+                        .then(response => response.json())
+                        .then(data => callback(data))
+                        .catch(error => callback(null));
+                """)
+                
+                if data and 'src' in data and data['src']:
                     target_url = data['src']
-                    # print(f"    [API Cracked] Got URL: {target_url}")
+                    # print(f"    [API OK] Got URL: {target_url}")
+                elif data and 'error' in data:
+                    print(f"    [API Blocked] Server says: {data['error']}")
             except Exception as api_err:
-                # print(f"    API Error: {api_err}")
-                pass
+                pass # Αγνόησε το error, θα πάμε στα fallbacks
 
         # --- 3. Iframe Fallback ---
         if not target_url:
@@ -95,8 +112,8 @@ def get_stream_with_devtools(sb, watch_url):
         if not target_url:
             return None, sub_url, final_referer
 
-        # Αν το API μας έδωσε κατευθείαν .mp4 (Εύκολη περίπτωση)
-        if re.search(r'\.(mp4|m3u8|txt)', target_url):
+        # Αν το API μας έδωσε κατευθείαν .mp4 (δεν χρειάζεται sniffing)
+        if re.search(r'\.(mp4|m3u8|txt)(?:[^\w]|$)', target_url):
             return target_url, sub_url, final_referer
 
         # --- 4. Πάμε στον Player (upns.pro κλπ) για Sniffing ---
@@ -132,7 +149,7 @@ def get_stream_with_devtools(sb, watch_url):
         time.sleep(4) 
         video_url = get_network_video(sb)
 
-        # Fallback αν δεν το έπιασε το Network
+        # Fallback Regex
         if not video_url:
             src = sb.get_page_source().replace(r'\/', '/')
             match = re.search(r'(https?://[^"\'<>\s]+\.(?:mp4|m3u8|txt)(?:[^"\'<>\s]*)?)', src)
@@ -193,7 +210,6 @@ def get_all_movie_urls():
                 sb.execute_script("window.scrollTo(0, document.body.scrollHeight);")
                 sb.sleep(2)
                 
-                # Check for the NEW url structure (title.php)
                 try: sb.wait_for_element_present("a[href*='/title.php?id=']", timeout=15)
                 except: pass
 
@@ -235,12 +251,11 @@ def process_batch(links):
                     h1 = soup.find('h1')
                     if h1: title = h1.text.strip()
                 if title == "Unknown" and soup.title:
-                    title = soup.title.text.strip()
+                    title = soup.title.text.strip().replace(" - GreekSubsMovies", "").strip()
                 
                 watch_url = None
                 label = "Stream"
                 
-                # Search Buttons (NEW FORMAT: /watch.php?)
                 for a in soup.find_all('a', href=True):
                     if '/watch.php?' in a['href']:
                         txt = a.text.strip().lower()
@@ -248,7 +263,6 @@ def process_batch(links):
                         
                         watch_url = a['href'] if a['href'].startswith('http') else BASE_URL + a['href']
                         
-                        # Βρίσκουμε την ποιότητα (1080p) που είναι δίπλα στο κουμπί
                         parent = a.find_parent(class_=['video-row', 'feature-card'])
                         if parent:
                             strong = parent.find('strong')
